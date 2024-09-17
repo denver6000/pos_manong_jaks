@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/stock_view"
+        android:title="Stocks" />
+
+    <item
+        android:id="@+id/sales_view"
+        android:title="Sales" />
+
+    <item
+        android:id="@+id/manage_stocks"
+        android:title="Manage Stocks" />
+    <item
+        android:id="@+id/manage_sales"
+        android:title="Manage Sales" />
+
+    <item
+        android:id="@+id/settings"
+        android:title="Settings" />
+</menu>

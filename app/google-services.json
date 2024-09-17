@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "899001741458",
+    "firebase_url": "https://inventorysystem-d2ea8-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "inventorysystem-d2ea8",
+    "storage_bucket": "inventorysystem-d2ea8.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:899001741458:android:b3bab5135c30f357e2f64b",
+        "android_client_info": {
+          "package_name": "com.denproj.posmanongjaks"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDcJxTr7OT39G4Ewkg-HlBlTFGXUkRvfB8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
