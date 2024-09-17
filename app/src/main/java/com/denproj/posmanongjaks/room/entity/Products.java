@@ -2,10 +2,13 @@ package com.denproj.posmanongjaks.room.entity;
 
 
 import androidx.room.Entity;
+import androidx.room.PrimaryKey;
 
 @Entity
 public class Products {
 
+    @PrimaryKey
+    int id;
     private String productId;
     private String name;
     public String pathToImage;
@@ -27,11 +30,11 @@ public class Products {
         this.productId = productId;
     }
 
-    public String getProductName() {
+    public String getName() {
         return name;
     }
 
-    public void setProductName(String productName) {
+    public void setName(String productName) {
         this.name = productName;
     }
 
