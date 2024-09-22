@@ -47,8 +47,8 @@ public class SelectProductFragment extends DialogFragment {
         viewmodel.loadGlobalList(new OnDataReceived<List<Product>>() {
             @Override
             public void onSuccess(List<Product> result) {
-                Log.d("Results", result.size() + "");
-                adapter.productsListRefreshed(result);
+//                Log.d("Results", result.size() + "");
+//                adapter.productsListRefreshed(result);
             }
 
             @Override

@@ -18,6 +18,7 @@ import android.widget.Toast;
 import com.denproj.posmanongjaks.R;
 import com.denproj.posmanongjaks.adapter.ItemsRecyclerViewAdapter;
 import com.denproj.posmanongjaks.databinding.FragmentBranchBinding;
+import com.denproj.posmanongjaks.dialog.AddNewItemFragment;
 import com.denproj.posmanongjaks.dialog.SelectItemFragment;
 import com.denproj.posmanongjaks.model.Item;
 import com.denproj.posmanongjaks.util.OnDataReceived;
@@ -54,9 +55,13 @@ public class BranchFragment extends Fragment {
 
             binding.stocksRcv.setLayoutManager(new LinearLayoutManager(requireContext()));
             binding.stocksRcv.setAdapter(adapter);
-            binding.addItemsBtn.setOnClickListener(view -> {
+            binding.selectItemsBtn.setOnClickListener(view -> {
                 SelectItemFragment itemFragment = new SelectItemFragment(branchId);
-                itemFragment.show(getChildFragmentManager(), null);
+                itemFragment.show(getChildFragmentManager(), "");
+            });
+            binding.addNewItem.setOnClickListener(view -> {
+                AddNewItemFragment addNewItemFragment = new AddNewItemFragment();
+                addNewItemFragment.show(getChildFragmentManager(), "");
             });
 
             adapter = new ItemsRecyclerViewAdapter(itemId -> {
@@ -68,9 +73,12 @@ public class BranchFragment extends Fragment {
                 public void onSuccess(List<Item> result) { adapter.onDataSetChanged(result);}
 
                 @Override
-                public void onFail(Exception e) {}
+                public void onFail(Exception e) {
+                    Log.e("Error", e.getMessage());
+                }
             });
         });
+
         return binding.getRoot();
     }
 

@@ -1,9 +1,12 @@
 package com.denproj.posmanongjaks.dialog;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -27,6 +30,7 @@ public class SelectItemFragment extends DialogFragment {
     BranchFragmentViewmodel viewmodel;
     ItemSelectionRecyclerViewAdapter adapter;
     String branchId;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -36,10 +40,11 @@ public class SelectItemFragment extends DialogFragment {
         this.branchId = branchId;
     }
 
+    @NonNull
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         FragmentSelectItemBinding binding = FragmentSelectItemBinding.inflate(getLayoutInflater());
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity());
         viewmodel = new ViewModelProvider(requireParentFragment()).get(BranchFragmentViewmodel.class);
         viewmodel.loadGlobalItemList(new OnDataReceived<List<Item>>() {
             @Override
@@ -47,15 +52,16 @@ public class SelectItemFragment extends DialogFragment {
                 binding.globalItemList.setLayoutManager(new LinearLayoutManager(requireContext()));
                 adapter = new ItemSelectionRecyclerViewAdapter(result);
                 binding.globalItemList.setAdapter(adapter);
+                Log.d("List", result.get(0).getItem_name() + "");
             }
 
             @Override
             public void onFail(Exception e) {
-
+                Log.e("Error", e.getMessage());
             }
         });
 
-        binding.saveSelectedBtn.setOnClickListener(view -> {
+        builder.setPositiveButton("Save Selection", (dialogInterface, i) -> {
             viewmodel.saveSelectionToBranchList(branchId, adapter.getSelectedItems(), new OnDataReceived<Void>() {
                 @Override
                 public void onSuccess(Void result) {
@@ -69,8 +75,12 @@ public class SelectItemFragment extends DialogFragment {
             });
         });
 
+        builder.setNegativeButton("Cancel", (dialogInterface, i) -> {
+            dismiss();
+        });
 
-        return binding.getRoot();
+        builder.setView(binding.getRoot());
+        return builder.show();
     }
 
     @Override

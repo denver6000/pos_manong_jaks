@@ -39,28 +39,28 @@ public class ProductsRecyclerViewAdapter extends RecyclerView.Adapter<ProductsRe
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        Product product = productList.get(position);
-        ProductCardBinding binding = holder.binding;
-        binding.setProductName(product.getProductName());
-        binding.setProductPrice(product.getPrice() + "");
-        FragmentActivity activity = (FragmentActivity) binding.getRoot().getContext();
-
-        ImagePathBinder.bindImagePathToImageView(product.pathToImage, binding.productImage, binding.getRoot().getContext(), new ImagePathBinder.OnImageBound() {
-            @Override
-            public void onBound() {
-
-            }
-
-            @Override
-            public void onError(Exception e) {
-
-            }
-        });
-
-
-        binding.changePriceRedirect.setOnClickListener(view -> {
-            new ChangePriceFragment(this.branchId, product.getProductId(), product.getProductName()).show(activity.getSupportFragmentManager(), "");
-        });
+//        Product product = productList.get(position);
+//        ProductCardBinding binding = holder.binding;
+//        binding.setProductName(product.getProductName());
+//        binding.setProductPrice(product.getPrice() + "");
+//        FragmentActivity activity = (FragmentActivity) binding.getRoot().getContext();
+//
+//        ImagePathBinder.bindImagePathToImageView(product.pathToImage, binding.productImage, binding.getRoot().getContext(), new ImagePathBinder.OnImageBound() {
+//            @Override
+//            public void onBound() {
+//
+//            }
+//
+//            @Override
+//            public void onError(Exception e) {
+//
+//            }
+//        });
+//
+//
+//        binding.changePriceRedirect.setOnClickListener(view -> {
+//            new ChangePriceFragment(this.branchId, product.getProductId(), product.getProductName()).show(activity.getSupportFragmentManager(), "");
+//        });
 
     }
 

@@ -40,25 +40,25 @@ public class ItemsRecyclerViewAdapter extends RecyclerView.Adapter<ItemsRecycler
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
 
-        Item item = items.get(position);
-        ItemCardWithStockBinding binding = holder.binding;
-        binding.setItemName(item.getItemName());
-        binding.setItemStockCount(item.getStockNumber() + "");
-        ImagePathBinder.bindImagePathToImageView(item.getItemImage(), binding.stockItemImageView, binding.getRoot().getContext(), new ImagePathBinder.OnImageBound() {
-            @Override
-            public void onBound() {
-
-            }
-
-            @Override
-            public void onError(Exception e) {
-
-            }
-        });
-
-        binding.getRoot().setOnClickListener(view -> {
-            navigate.onNavigate(item.getItemId());
-        });
+//        Item item = items.get(position);
+//        ItemCardWithStockBinding binding = holder.binding;
+//        binding.setItemName(item.getItemName());
+//        binding.setItemStockCount(item.getStockNumber() + "");
+//        ImagePathBinder.bindImagePathToImageView(item.getItemImage(), binding.stockItemImageView, binding.getRoot().getContext(), new ImagePathBinder.OnImageBound() {
+//            @Override
+//            public void onBound() {
+//
+//            }
+//
+//            @Override
+//            public void onError(Exception e) {
+//
+//            }
+//        });
+//
+//        binding.getRoot().setOnClickListener(view -> {
+//            navigate.onNavigate(item.getItemId());
+//        });
 
     }
 

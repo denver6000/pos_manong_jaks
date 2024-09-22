@@ -22,7 +22,7 @@ import java.util.function.Consumer;
 public class ItemSelectionRecyclerViewAdapter extends RecyclerView.Adapter<ItemSelectionRecyclerViewAdapter.ViewHolder> {
 
     List<Item> globalList;
-    HashMap<String, Item> selectedItemsMap = new HashMap<>();
+    HashMap<Integer, Item> selectedItemsMap = new HashMap<>();
 
     public ItemSelectionRecyclerViewAdapter(List<Item> globalList) {
         this.globalList = globalList;
@@ -40,16 +40,20 @@ public class ItemSelectionRecyclerViewAdapter extends RecyclerView.Adapter<ItemS
         Item item = globalList.get(position);
         SelectableItemCardBinding binding = holder.binding;
         FirebaseStorage storage = FirebaseStorage.getInstance();
-        storage.getReference(item.getItemImage()).getDownloadUrl().addOnSuccessListener(uri -> {
+        storage.getReference(item.getItem_image_path()).getDownloadUrl().addOnSuccessListener(uri -> {
             Glide.with(binding.getRoot().getContext())
                     .load(uri)
                     .into(binding.productImageView);
         });
+        binding.setItemName(item.getItem_name());
+        binding.setItemDefaultStock(item.getItem_quantity() + "");
+        binding.setItemDefaultPrice(item.getItem_price() + " Pesos");
+        binding.setItemUnit(item.getItem_unit());
         binding.itemCheckBox.setOnCheckedChangeListener((compoundButton, b) -> {
             if (b) {
-                selectedItemsMap.put(item.getItemId(), item);
+                selectedItemsMap.put(item.getItem_id(), item);
             } else {
-                selectedItemsMap.remove(item.getItemId());
+                selectedItemsMap.remove(item.getItem_id());
             }
         });
     }
@@ -68,7 +72,7 @@ public class ItemSelectionRecyclerViewAdapter extends RecyclerView.Adapter<ItemS
 
     }
 
-    public HashMap<String, Item> getSelectedItems() {
+    public HashMap<Integer, Item> getSelectedItems() {
         return this.selectedItemsMap;
     }
 }

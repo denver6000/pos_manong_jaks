@@ -5,10 +5,10 @@
 
     <data>
         <variable
-            name="productName"
+            name="productNameVar"
             type="String" />
         <variable
-            name="productPrice"
+            name="productPriceVar"
             type="String" />
     </data>
     <androidx.cardview.widget.CardView
@@ -32,7 +32,7 @@
                 android:id="@+id/productName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@{productName}"
+                android:text="@{productNameVar}"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.128"
@@ -44,7 +44,7 @@
                 android:id="@+id/productPrice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@={productPrice}"
+                android:text="@={productPriceVar}"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.034"

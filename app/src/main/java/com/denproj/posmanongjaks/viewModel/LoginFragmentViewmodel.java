@@ -42,7 +42,7 @@ public class LoginFragmentViewmodel extends ViewModel {
         String uid = FirebaseAuth.getInstance().getUid();
         if (uid != null && !uid.isEmpty()) {
             FirebaseFirestore firestore = FirebaseFirestore.getInstance();
-            firestore.collection("users").whereEqualTo("uid", uid)
+            firestore.collection("users").whereEqualTo("user_id", uid)
                     .get().addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
                             onDataReceived.onSuccess(task

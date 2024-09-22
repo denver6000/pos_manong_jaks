@@ -3,54 +3,82 @@ package com.denproj.posmanongjaks.model;
 
 public class Item {
 
-    private String itemImage;
+    private String item_image_path;
+    private int item_id;
+    private String item_name;
+    private String item_category;
+    private int item_quantity;
+    private String item_unit;
+    private float item_price;
 
-    private String itemId;
+    public Item(String item_image_path, int item_id, String item_name, String item_category, int item_quantity, String item_unit, float item_price) {
+        this.item_image_path = item_image_path;
+        this.item_id = item_id;
+        this.item_name = item_name;
+        this.item_category = item_category;
+        this.item_quantity = item_quantity;
+        this.item_unit = item_unit;
+        this.item_price = item_price;
+    }
 
-    private String itemName;
-
-    private int stockNumber = 0;
-
-    public Item () {
+    public Item() {
 
     }
 
-    public Item(String itemImage, String itemId, String itemName) {
-        this.itemImage = itemImage;
-        this.itemId = itemId;
-        this.itemName = itemName;
+    public String getItem_image_path() {
+        return item_image_path;
     }
 
-    public Item(String itemImage, String itemName, int stockNumber) {
-        this.itemImage = itemImage;
-        this.itemId = itemName;
-        this.stockNumber = stockNumber;
+    public void setItem_image_path(String item_image_path) {
+        this.item_image_path = item_image_path;
     }
 
-    public String getItemImage() {
-        return itemImage;
+    public int getItem_id() {
+        return item_id;
     }
 
-
-    public String getItemId() {
-        return itemId;
+    public void setItem_id(int item_id) {
+        this.item_id = item_id;
     }
 
-
-    public int getStockNumber() {
-        return stockNumber;
+    public String getItem_name() {
+        return item_name;
     }
 
-    public void setStockNumber(int stockNumber) {
-        this.stockNumber = stockNumber;
+    public void setItem_name(String item_name) {
+        this.item_name = item_name;
     }
 
-    public String getItemName() {
-        return itemName;
+    public String getItem_category() {
+        return item_category;
     }
 
-    public void setItemName(String itemName) {
-        this.itemName = itemName;
+    public void setItem_category(String item_category) {
+        this.item_category = item_category;
+    }
+
+    public int getItem_quantity() {
+        return item_quantity;
+    }
+
+    public void setItem_quantity(int item_quantity) {
+        this.item_quantity = item_quantity;
+    }
+
+    public String getItem_unit() {
+        return item_unit;
+    }
+
+    public void setItem_unit(String item_unit) {
+        this.item_unit = item_unit;
+    }
+
+    public float getItem_price() {
+        return item_price;
+    }
+
+    public void setItem_price(int item_price) {
+        this.item_price = item_price;
     }
 }
 

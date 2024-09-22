@@ -1,6 +1,10 @@
 package com.denproj.posmanongjaks.viewModel;
 
+import android.util.Log;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.lifecycle.ViewModel;
 
 import com.denproj.posmanongjaks.model.Product;
@@ -12,7 +16,10 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,12 +45,15 @@ public class SalesFragmentViewmodel extends ViewModel {
             if (error == null) {
                 List<Product> products = new ArrayList<>();
                 value.getDocuments().forEach(documentSnapshot -> {
-                    String id = documentSnapshot.get("productId", String.class);
-                    String name = documentSnapshot.get("name", String.class);
-                    String imagePath = documentSnapshot.get("image_path", String.class);
-                    String price = documentSnapshot.get("price").toString();
-                    Product product = new Product(id, name, imagePath, price);
-                    products.add(product);
+                    Log.d("Test", "Success");
+                    Product product = documentSnapshot.toObject(Product.class);
+                    Log.d("Product", product.getProduct_category());
+//                    Product product = documentSnapshot.
+//                    products.add(product);
+//                    documentSnapshot.getDocumentReference("/recipes").addSnapshotListener((value1, error1) -> {
+//                        value1.getData().keySet();
+//                    });
+                    Log.d("Key", "Test");
                 });
                 onGlobalListReceived.onSuccess(products);
             }
@@ -57,11 +67,7 @@ public class SalesFragmentViewmodel extends ViewModel {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 List<Product> products = new ArrayList<>();
                 snapshot.getChildren().forEach(dataSnapshot -> {
-                    String productName = dataSnapshot.child("productName").getValue(String.class);
-                    String imagePath = dataSnapshot.child("pathToImage").getValue(String.class);
-                    String price = dataSnapshot.child("price").getValue(Long.class).toString();
-                    String productId = dataSnapshot.child("productId").getValue(String.class);
-                    products.add(new Product(productId, productName, imagePath, price));
+
                 });
                 onProductListReceived.onSuccess(products);
             }

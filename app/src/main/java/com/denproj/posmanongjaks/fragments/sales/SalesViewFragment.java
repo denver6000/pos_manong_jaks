@@ -50,7 +50,6 @@ public class SalesViewFragment extends Fragment {
             }
 
             this.setUpPriceChangeListener(branchId);
-
             this.loadProductsOnBranch(branchId);
 
             binding.addItemsToBranch.setOnClickListener(view -> {

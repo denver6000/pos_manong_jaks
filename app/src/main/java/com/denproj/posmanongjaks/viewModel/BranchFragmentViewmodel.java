@@ -47,7 +47,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel;
 @HiltViewModel
 public class BranchFragmentViewmodel extends ViewModel {
 
-    public MutableLiveData<HashMap<String, Item>> listMutableLiveData = new MutableLiveData<>();
+    public MutableLiveData<HashMap<Integer, Item>> listMutableLiveData = new MutableLiveData<>();
     public MutableLiveData<String> branchIdLiveData = new MutableLiveData<>("");
 
     @Inject
@@ -61,20 +61,15 @@ public class BranchFragmentViewmodel extends ViewModel {
          CollectionReference documentReference = firestore.collection("items_list");
          documentReference.get().addOnSuccessListener(queryDocumentSnapshots -> {
              List<Item> itemsList = new ArrayList<>();
-             queryDocumentSnapshots.getDocuments().forEach(documentSnapshot -> {
-                 String itemName = documentSnapshot.get("item_name", String.class);
-                 String itemId= documentSnapshot.get("item_id", String.class);
-                 String itemImagePath = documentSnapshot.get("item_image_path", String.class);
-                 Log.d("DataLog", itemName);
-                 Item item = new Item(itemImagePath, itemId, itemName);
-                 itemsList.add(item);
+             queryDocumentSnapshots.forEach(queryDocumentSnapshot -> {
+                 itemsList.add(queryDocumentSnapshot.toObject(Item.class));
              });
              onListReceived.onSuccess(itemsList);
          });
 
     }
 
-    public void saveSelectionToBranchList(String branchId, HashMap<String, Item> selectedItemsMap, OnDataReceived<Void> onComplete) {
+    public void saveSelectionToBranchList(String branchId, HashMap<Integer, Item> selectedItemsMap, OnDataReceived<Void> onComplete) {
         FirebaseDatabase realtimeDatabase = FirebaseDatabase.getInstance();
         DatabaseReference itemsOnBranchesRef = realtimeDatabase.getReference("items_on_branches");
         DatabaseReference branchChild = itemsOnBranchesRef.child(branchId);
@@ -96,7 +91,7 @@ public class BranchFragmentViewmodel extends ViewModel {
                snapshot.getChildren().forEach(dataSnapshot -> {
                    Item item = dataSnapshot.getValue(Item.class);
                    items.add(item);
-                   Log.d("Debug", item.getItemImage());
+//                   Log.d("Debug", item.getItemImage());
                });
                onDataReceived.onSuccess(items);
             }

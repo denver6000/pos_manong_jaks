@@ -44,28 +44,28 @@ public class ProductSelectionRecyclerViewAdapter extends RecyclerView.Adapter<Pr
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        ProductSelectionCardBinding binding = holder.binding;
-        Product product = productsList.get(position);
-        binding.setProductName(product.getProductName());
-        binding.productCheckBox.setOnCheckedChangeListener((compoundButton, b) -> {
-            if (b) {
-                selectedList.put(product.getProductId(), product);
-            } else {
-                selectedList.remove(product.getProductId());
-            }
-        });
-
-        ImagePathBinder.bindImagePathToImageView(product.pathToImage, binding.imageView2, binding.getRoot().getContext(), new ImagePathBinder.OnImageBound() {
-            @Override
-            public void onBound() {
-
-            }
-
-            @Override
-            public void onError(Exception e) {
-
-            }
-        });
+//        ProductSelectionCardBinding binding = holder.binding;
+//        Product product = productsList.get(position);
+//        binding.setProductName(product.getProductName());
+//        binding.productCheckBox.setOnCheckedChangeListener((compoundButton, b) -> {
+//            if (b) {
+//                selectedList.put(product.getProductId(), product);
+//            } else {
+//                selectedList.remove(product.getProductId());
+//            }
+//        });
+//
+//        ImagePathBinder.bindImagePathToImageView(product.pathToImage, binding.imageView2, binding.getRoot().getContext(), new ImagePathBinder.OnImageBound() {
+//            @Override
+//            public void onBound() {
+//
+//            }
+//
+//            @Override
+//            public void onError(Exception e) {
+//
+//            }
+//        });
 
     }
 

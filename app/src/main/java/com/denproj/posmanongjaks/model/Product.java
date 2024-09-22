@@ -1,44 +1,56 @@
 package com.denproj.posmanongjaks.model;
 
+import java.util.HashMap;
+
 public class Product {
 
-    private String productId;
-    private String name;
-    public String pathToImage;
-    private String price;
+    private String product_id;
+    private String product_name;
+    private String product_image_path;
+    private float product_price;
+    private String product_category;
 
-    public Product(String productId, String name, String pathToImage, String price) {
-        this.productId = productId;
-        this.name = name;
-        this.pathToImage = pathToImage;
-        this.price = price;
+    public Product() {
     }
 
-    public String getProductId() {
-        return productId;
+    public String getProduct_id() {
+        return product_id;
     }
 
-    public Product () {
-
+    public void setProduct_id(String product_id) {
+        this.product_id = product_id;
     }
 
-    public void setProductId(String productId) {
-        this.productId = productId;
+    public String getProduct_name() {
+        return product_name;
     }
 
-    public String getProductName() {
-        return name;
+    public void setProduct_name(String product_name) {
+        this.product_name = product_name;
     }
 
-    public void setProductName(String productName) {
-        this.name = productName;
+    public String getProduct_image_path() {
+        return product_image_path;
     }
 
-    public String getPrice() {
-        return price;
+    public void setProduct_image_path(String product_image_path) {
+        this.product_image_path = product_image_path;
     }
 
-    public void setPrice(String price) {
-        this.price = price;
+    public float getProduct_price() {
+        return product_price;
     }
+
+    public void setProduct_price(float product_price) {
+        this.product_price = product_price;
+    }
+
+    public String getProduct_category() {
+        return product_category;
+    }
+
+    public void setProduct_category(String product_category) {
+        this.product_category = product_category;
+    }
+
 }
