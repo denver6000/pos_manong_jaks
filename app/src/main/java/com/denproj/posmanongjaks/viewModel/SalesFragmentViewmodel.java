@@ -1,30 +1,20 @@
 package com.denproj.posmanongjaks.viewModel;
 
-import android.util.Log;
-import android.widget.Toast;
-
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.lifecycle.ViewModel;
 
 import com.denproj.posmanongjaks.model.Product;
 import com.denproj.posmanongjaks.util.OnDataReceived;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.EventListener;
-import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.function.Consumer;
 
 import javax.inject.Inject;
 
@@ -32,7 +22,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel;
 
 @HiltViewModel
 public class SalesFragmentViewmodel extends ViewModel {
-    public static final String PATH_TO_GLOBAL_LIST = "products_list";
+    public static final String PATH_TO_GLOBAL_PRODUCT_LIST = "products_list";
+    public static final String PATH_TO_GLOBAL_ITEM_LIST = "items_list";
 
     @Inject
     public SalesFragmentViewmodel () {
@@ -41,20 +32,9 @@ public class SalesFragmentViewmodel extends ViewModel {
 
     public void loadGlobalList(OnDataReceived<List<Product>> onGlobalListReceived) {
         FirebaseFirestore firestore = FirebaseFirestore.getInstance();
-        firestore.collection(PATH_TO_GLOBAL_LIST).addSnapshotListener((value, error) -> {
+        firestore.collection(PATH_TO_GLOBAL_PRODUCT_LIST).addSnapshotListener((value, error) -> {
             if (error == null) {
-                List<Product> products = new ArrayList<>();
-                value.getDocuments().forEach(documentSnapshot -> {
-                    Log.d("Test", "Success");
-                    Product product = documentSnapshot.toObject(Product.class);
-                    Log.d("Product", product.getProduct_category());
-//                    Product product = documentSnapshot.
-//                    products.add(product);
-//                    documentSnapshot.getDocumentReference("/recipes").addSnapshotListener((value1, error1) -> {
-//                        value1.getData().keySet();
-//                    });
-                    Log.d("Key", "Test");
-                });
+                List<Product> products = value.toObjects(Product.class);
                 onGlobalListReceived.onSuccess(products);
             }
         });
@@ -62,7 +42,7 @@ public class SalesFragmentViewmodel extends ViewModel {
 
     public void loadProductsOfBranch(String branchId, OnDataReceived<List<Product>> onProductListReceived) {
         FirebaseDatabase realtimeDatabase = FirebaseDatabase.getInstance();
-        realtimeDatabase.getReference(PATH_TO_GLOBAL_LIST + "/" + branchId).addValueEventListener(new ValueEventListener() {
+        realtimeDatabase.getReference(PATH_TO_GLOBAL_PRODUCT_LIST + "/" + branchId).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 List<Product> products = new ArrayList<>();
@@ -81,7 +61,22 @@ public class SalesFragmentViewmodel extends ViewModel {
 
     public void saveSelectedProductToBranch(String branchId, HashMap<String, Product> selectedItems) {
         FirebaseDatabase database = FirebaseDatabase.getInstance();
-        database.getReference(PATH_TO_GLOBAL_LIST).child(branchId).setValue(selectedItems);
+        DatabaseReference ref = database.getReference(PATH_TO_GLOBAL_ITEM_LIST+"/"+branchId);
+        selectedItems.values().forEach(s -> s.getRecipes().forEach((s1, recipe) -> {
+            ref.child(s1).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (!snapshot.exists()) {
+                        //TODO Insert Items To Branch Stocks
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+
+                }
+            });
+        }));
     }
 
     public void changeProductPrice (String itemId, String branchId, String newPrice, OnDataReceived<Void> onPriceChanged) {

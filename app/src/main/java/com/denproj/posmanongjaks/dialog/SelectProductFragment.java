@@ -1,7 +1,12 @@
 package com.denproj.posmanongjaks.dialog;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
@@ -35,11 +40,11 @@ public class SelectProductFragment extends DialogFragment {
         this.branchId = branchId;
     }
 
+    @NonNull
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         FragmentSelectProductBinding binding = FragmentSelectProductBinding.inflate(getLayoutInflater());
-
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity());
         this.viewmodel = new ViewModelProvider(requireParentFragment()).get(SalesFragmentViewmodel.class);
         adapter = new ProductSelectionRecyclerViewAdapter();
         binding.productSelectionRcv.setLayoutManager(new LinearLayoutManager(requireContext()));
@@ -47,8 +52,8 @@ public class SelectProductFragment extends DialogFragment {
         viewmodel.loadGlobalList(new OnDataReceived<List<Product>>() {
             @Override
             public void onSuccess(List<Product> result) {
-//                Log.d("Results", result.size() + "");
-//                adapter.productsListRefreshed(result);
+                Log.d("Results", result.size() + "");
+                adapter.productsListRefreshed(result);
             }
 
             @Override
@@ -56,9 +61,9 @@ public class SelectProductFragment extends DialogFragment {
                 Log.d("Error", e.getMessage());
             }
         });
+        builder.setView(binding.getRoot());
 
-
-        binding.saveProductSelection.setOnClickListener(view -> {
+        builder.setPositiveButton("Save Selection", (dialogInterface, i) -> {
             if (!adapter.getSelectedList().isEmpty()) {
                 dismissNow();
                 viewmodel.saveSelectedProductToBranch(this.branchId, adapter.getSelectedList());
@@ -67,7 +72,10 @@ public class SelectProductFragment extends DialogFragment {
             }
         });
 
+        builder.setNegativeButton("Cancel", (dialogInterface, i) -> dismiss());
 
-        return binding.getRoot();
+        return builder.show();
     }
+
+
 }

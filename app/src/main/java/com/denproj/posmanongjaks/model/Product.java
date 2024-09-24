@@ -4,20 +4,31 @@ import java.util.HashMap;
 
 public class Product {
 
-    private String product_id;
+    private Integer product_id;
     private String product_name;
     private String product_image_path;
     private float product_price;
     private String product_category;
 
+    private HashMap<String, Recipe> recipes;
+
+
+    public HashMap<String, Recipe> getRecipes() {
+        return recipes;
+    }
+
+    public void setRecipes(HashMap<String, Recipe> recipes) {
+        this.recipes = recipes;
+    }
+
     public Product() {
     }
 
-    public String getProduct_id() {
+    public Integer getProduct_id() {
         return product_id;
     }
 
-    public void setProduct_id(String product_id) {
+    public void setProduct_id(Integer product_id) {
         this.product_id = product_id;
     }
 

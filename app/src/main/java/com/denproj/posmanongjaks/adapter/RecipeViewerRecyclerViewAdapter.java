@@ -1,0 +1,59 @@
+package com.denproj.posmanongjaks.adapter;
+
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
+import com.denproj.posmanongjaks.R;
+import com.denproj.posmanongjaks.databinding.RecipeViewOnlyCardBinding;
+import com.denproj.posmanongjaks.model.Recipe;
+import java.util.HashMap;
+
+public class RecipeViewerRecyclerViewAdapter extends RecyclerView.Adapter<RecipeViewerRecyclerViewAdapter.ViewHolder> {
+    HashMap<Integer, Recipe> selectedRecipes;
+
+    public RecipeViewerRecyclerViewAdapter(HashMap<Integer, Recipe> selectedRecipes) {
+        this.selectedRecipes = selectedRecipes;
+    }
+
+    @NonNull
+    @Override
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        return new ViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.recipe_view_only_card, parent, false));
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+
+        Integer[] keyset = (Integer[]) selectedRecipes.keySet().stream().toArray();
+        Integer key = keyset[position];
+        Recipe recipe = selectedRecipes.get(key);
+
+        RecipeViewOnlyCardBinding binding = holder.getBinding();
+        binding.setItemAmount("x" + recipe);
+        binding.setItemName(recipe.getItemName());
+    }
+
+    @Override
+    public int getItemCount() {
+        return selectedRecipes.size();
+    }
+
+    public class ViewHolder extends RecyclerView.ViewHolder {
+        RecipeViewOnlyCardBinding binding;
+
+        public ViewHolder(@NonNull View itemView) {
+            super(itemView);
+            binding = RecipeViewOnlyCardBinding.bind(itemView);
+        }
+
+        public RecipeViewOnlyCardBinding getBinding() {
+            return binding;
+        }
+
+        public void setBinding(RecipeViewOnlyCardBinding binding) {
+            this.binding = binding;
+        }
+    }
+}

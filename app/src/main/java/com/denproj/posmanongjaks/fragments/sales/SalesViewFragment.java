@@ -2,6 +2,7 @@ package com.denproj.posmanongjaks.fragments.sales;
 
 import android.os.Bundle;
 
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
@@ -17,9 +18,11 @@ import android.widget.Toast;
 import com.denproj.posmanongjaks.R;
 import com.denproj.posmanongjaks.adapter.ProductsRecyclerViewAdapter;
 import com.denproj.posmanongjaks.databinding.FragmentSalesViewBinding;
+import com.denproj.posmanongjaks.dialog.AddProductFragment;
 import com.denproj.posmanongjaks.dialog.SelectProductFragment;
 import com.denproj.posmanongjaks.model.Product;
 import com.denproj.posmanongjaks.util.OnDataReceived;
+import com.denproj.posmanongjaks.util.OnDialogFinished;
 import com.denproj.posmanongjaks.viewModel.BranchFragmentViewmodel;
 import com.denproj.posmanongjaks.viewModel.SalesFragmentViewmodel;
 
@@ -52,9 +55,24 @@ public class SalesViewFragment extends Fragment {
             this.setUpPriceChangeListener(branchId);
             this.loadProductsOnBranch(branchId);
 
-            binding.addItemsToBranch.setOnClickListener(view -> {
+            binding.addProductToBranch.setOnClickListener(view -> {
                 SelectProductFragment dialog = new SelectProductFragment(branchId);
                 dialog.show(getChildFragmentManager(), "");
+            });
+
+            binding.addNewProduct.setOnClickListener(view -> {
+                new AddProductFragment(new OnDialogFinished<Void>() {
+                    @Override
+                    public void onDialogFinishedSuccessfully(Void result) {
+
+                    }
+
+                    @Override
+                    public void onDialogFailed(@Nullable Exception e) {
+
+                    }
+                }).show(getParentFragmentManager(), "");
+
             });
 
         });

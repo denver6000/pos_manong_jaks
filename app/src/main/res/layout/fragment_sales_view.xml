@@ -18,11 +18,18 @@
         android:orientation="horizontal">
 
         <Button
-            android:id="@+id/addItemsToBranch"
+            android:id="@+id/addNewProduct"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Add Items" />
+            android:text="Add New Product" />
+
+        <Button
+            android:id="@+id/addProductToBranch"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Add Product To Branch" />
 
     </LinearLayout>
 
