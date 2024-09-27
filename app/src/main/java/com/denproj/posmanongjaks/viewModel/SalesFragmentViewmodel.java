@@ -1,10 +1,17 @@
 package com.denproj.posmanongjaks.viewModel;
 
+import static com.denproj.posmanongjaks.repository.imp.ProductRepositoryImpl.PATH_TO_GLOBAL_ITEM_LIST;
+import static com.denproj.posmanongjaks.repository.imp.ProductRepositoryImpl.PATH_TO_GLOBAL_PRODUCT_LIST;
+
 import androidx.annotation.NonNull;
+import androidx.databinding.ObservableField;
 import androidx.lifecycle.ViewModel;
 
 import com.denproj.posmanongjaks.model.Product;
+import com.denproj.posmanongjaks.model.Recipe;
+import com.denproj.posmanongjaks.repository.base.ProductRepository;
 import com.denproj.posmanongjaks.util.OnDataReceived;
+import com.denproj.posmanongjaks.util.OnUpdateUI;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -15,6 +22,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 
 import javax.inject.Inject;
 
@@ -22,39 +30,42 @@ import dagger.hilt.android.lifecycle.HiltViewModel;
 
 @HiltViewModel
 public class SalesFragmentViewmodel extends ViewModel {
-    public static final String PATH_TO_GLOBAL_PRODUCT_LIST = "products_list";
-    public static final String PATH_TO_GLOBAL_ITEM_LIST = "items_list";
+
+
+    ProductRepository productRepository;
+
+    public ObservableField<String> productName = new ObservableField<>("");
+    public ObservableField<String> productPrice = new ObservableField<>("");
 
     @Inject
-    public SalesFragmentViewmodel () {
-
+    public SalesFragmentViewmodel (ProductRepository productRepository) {
+        this.productRepository = productRepository;
     }
 
-    public void loadGlobalList(OnDataReceived<List<Product>> onGlobalListReceived) {
-        FirebaseFirestore firestore = FirebaseFirestore.getInstance();
-        firestore.collection(PATH_TO_GLOBAL_PRODUCT_LIST).addSnapshotListener((value, error) -> {
-            if (error == null) {
-                List<Product> products = value.toObjects(Product.class);
-                onGlobalListReceived.onSuccess(products);
+    public void loadGlobalList(OnUpdateUI<List<Product>> onUpdateUI) {
+        productRepository.fetchProductsFromGlobal(new OnDataReceived<List<Product>>() {
+            @Override
+            public void onSuccess(List<Product> result) {
+                onUpdateUI.onSuccess(result);
+            }
+
+            @Override
+            public void onFail(Exception e) {
+                onUpdateUI.onFail(e);
             }
         });
     }
 
-    public void loadProductsOfBranch(String branchId, OnDataReceived<List<Product>> onProductListReceived) {
-        FirebaseDatabase realtimeDatabase = FirebaseDatabase.getInstance();
-        realtimeDatabase.getReference(PATH_TO_GLOBAL_PRODUCT_LIST + "/" + branchId).addValueEventListener(new ValueEventListener() {
+    public void loadProductsOfBranch(String branchId, OnUpdateUI<List<Product>> listOnUpdateUI) {
+        productRepository.fetchProductsFromBranch(branchId, new OnDataReceived<List<Product>>() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                List<Product> products = new ArrayList<>();
-                snapshot.getChildren().forEach(dataSnapshot -> {
-
-                });
-                onProductListReceived.onSuccess(products);
+            public void onSuccess(List<Product> result) {
+                listOnUpdateUI.onSuccess(result);
             }
 
             @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                onProductListReceived.onFail(error.toException());
+            public void onFail(Exception e) {
+                listOnUpdateUI.onFail(e);
             }
         });
     }
@@ -67,7 +78,7 @@ public class SalesFragmentViewmodel extends ViewModel {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                     if (!snapshot.exists()) {
-                        //TODO Insert Items To Branch Stocks
+                        // TODO Insert Items To Branch Stocks
                     }
                 }
 
@@ -87,5 +98,28 @@ public class SalesFragmentViewmodel extends ViewModel {
                 .setValue(Double.valueOf(newPrice))
                 .addOnSuccessListener(onPriceChanged::onSuccess)
                 .addOnFailureListener(onPriceChanged::onFail);
+    }
+
+    public void addProduct(String branchId, HashMap<String, Recipe> recipes, OnUpdateUI<Void> onUpdateUI) {
+        Product product = new Product();
+        product.setProduct_id(generateRandomSixDigitId());
+        product.setProduct_name(productName.get());
+        product.setProduct_price(Float.parseFloat(productPrice.get()));
+        product.setRecipes(recipes);
+        productRepository.insertProduct(branchId, product, new OnDataReceived<Void>() {
+            @Override
+            public void onSuccess(Void result) {
+                onUpdateUI.onSuccess(result);
+            }
+
+            @Override
+            public void onFail(Exception e) {
+                onUpdateUI.onFail(e);
+            }
+        });
+    }
+
+    public int generateRandomSixDigitId() {
+        return new Random().nextInt(999999);
     }
 }

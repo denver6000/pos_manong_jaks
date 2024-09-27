@@ -1,56 +1,67 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".dialog.AddProductFragment">
+<layout>
+    <data>
+        <variable
+            name="viewModel"
+            type="com.denproj.posmanongjaks.viewModel.SalesFragmentViewmodel" />
 
-    <LinearLayout
+
+    </data>
+    <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
+        tools:context=".dialog.AddProductFragment">
 
-        <EditText
-            android:id="@+id/productNameInsert"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ems="10"
-            android:hint="Enter Product Name"
-            android:inputType="text" />
-
-        <EditText
-            android:id="@+id/productPriceInsert"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ems="10"
-            android:hint="Product Default Price"
-            android:inputType="text" />
-
-        <Button
-            android:id="@+id/button4"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Choose Image" />
-
-        <ImageView
-            android:id="@+id/productImagePreview"
-            android:layout_width="match_parent"
-            android:layout_height="150dp"
-            tools:src="@tools:sample/avatars" />
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/chosenRecipesList"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="1" />
+            android:orientation="vertical">
 
-        <Button
-            android:id="@+id/chooseProductRecipe"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Choose Product Recipes" />
+            <EditText
+                android:id="@+id/productNameInsert"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:hint="Enter Product Name"
+                android:text="@={viewModel.productName}"
+                android:inputType="text" />
 
-    </LinearLayout>
+            <EditText
+                android:id="@+id/productPriceInsert"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:hint="Product Default Price"
+                android:inputType="numberDecimal"
+                android:text="@={viewModel.productPrice}"/>
 
-</FrameLayout>
+            <Button
+                android:id="@+id/button4"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Choose Image" />
+
+            <ImageView
+                android:id="@+id/productImagePreview"
+                android:layout_width="match_parent"
+                android:layout_height="150dp"
+                tools:src="@tools:sample/avatars" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/chosenRecipesList"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1" />
+
+            <Button
+                android:id="@+id/chooseProductRecipe"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Choose Product Recipes" />
+
+        </LinearLayout>
+
+    </FrameLayout>
+</layout>

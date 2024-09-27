@@ -3,42 +3,22 @@ package com.denproj.posmanongjaks.viewModel;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.denproj.posmanongjaks.model.Item;
+import com.denproj.posmanongjaks.repository.base.ItemRepository;
 import com.denproj.posmanongjaks.util.OnDataReceived;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.FirebaseAuth;
+import com.denproj.posmanongjaks.util.OnUpdateUI;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.EventListener;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 import javax.inject.Inject;
 
@@ -50,55 +30,52 @@ public class BranchFragmentViewmodel extends ViewModel {
     public MutableLiveData<HashMap<Integer, Item>> listMutableLiveData = new MutableLiveData<>();
     public MutableLiveData<String> branchIdLiveData = new MutableLiveData<>("");
 
+    ItemRepository itemRepository;
+
     @Inject
-    public BranchFragmentViewmodel() {
+    public BranchFragmentViewmodel(ItemRepository itemRepository) {
+        this.itemRepository = itemRepository;
+    }
+
+    public void loadGlobalItemList(OnUpdateUI<List<Item>> onUpdateUI) {
+        this.itemRepository.fetchItemsFromGlobal(new OnDataReceived<List<Item>>() {
+            @Override
+            public void onSuccess(List<Item> result) {
+                onUpdateUI.onSuccess(result);
+            }
+
+            @Override
+            public void onFail(Exception e) {
+                onUpdateUI.onFail(new Exception("Something went wrong with fetching items list."));
+            }
+        });
 
     }
 
-    public void loadGlobalItemList(OnDataReceived<List<Item>> onListReceived) {
-        FirebaseFirestore firestore = FirebaseFirestore.getInstance();
+    public void saveSelectionToBranchList(String branchId, HashMap<Integer, Item> selectedItemsMap, OnUpdateUI<Void> onUpdateUI) {
+        itemRepository.saveSelectionToBranchList(branchId, selectedItemsMap, new OnDataReceived<Void>() {
+            @Override
+            public void onSuccess(Void result) {
+                onUpdateUI.onSuccess(result);
+            }
 
-         CollectionReference documentReference = firestore.collection("items_list");
-         documentReference.get().addOnSuccessListener(queryDocumentSnapshots -> {
-             List<Item> itemsList = new ArrayList<>();
-             queryDocumentSnapshots.forEach(queryDocumentSnapshot -> {
-                 itemsList.add(queryDocumentSnapshot.toObject(Item.class));
-             });
-             onListReceived.onSuccess(itemsList);
-         });
-
-    }
-
-    public void saveSelectionToBranchList(String branchId, HashMap<Integer, Item> selectedItemsMap, OnDataReceived<Void> onComplete) {
-        FirebaseDatabase realtimeDatabase = FirebaseDatabase.getInstance();
-        DatabaseReference itemsOnBranchesRef = realtimeDatabase.getReference("items_on_branches");
-        DatabaseReference branchChild = itemsOnBranchesRef.child(branchId);
-        branchChild.setValue(selectedItemsMap).addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                onComplete.onSuccess(null);
-            } else {
-                onComplete.onFail(task.getException());
+            @Override
+            public void onFail(Exception e) {
+                onUpdateUI.onFail(new Exception("Selections were not saved."));
             }
         });
     }
 
-    public void getRealtimeBranchStocks(String branchId, OnDataReceived<List<Item>> onDataReceived) {
-        FirebaseDatabase realtimeDatabase = FirebaseDatabase.getInstance();
-        realtimeDatabase.getReference("/items_on_branches/"+branchId).addValueEventListener(new ValueEventListener() {
+    public void getRealtimeBranchStocks(String branchId, OnUpdateUI<List<Item>> onUpdateUI) {
+        itemRepository.fetchItemsFromBranch(branchId, new OnDataReceived<List<Item>>() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                List<Item> items = new ArrayList<>();
-               snapshot.getChildren().forEach(dataSnapshot -> {
-                   Item item = dataSnapshot.getValue(Item.class);
-                   items.add(item);
-//                   Log.d("Debug", item.getItemImage());
-               });
-               onDataReceived.onSuccess(items);
+            public void onSuccess(List<Item> result) {
+                onUpdateUI.onSuccess(result);
             }
 
             @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Log.d("Error", error.getMessage());
+            public void onFail(Exception e) {
+                onUpdateUI.onFail(new Exception("Something went wrong with fetching the items list."));
             }
         });
     }

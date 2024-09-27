@@ -11,10 +11,15 @@ import com.denproj.posmanongjaks.model.Recipe;
 import java.util.HashMap;
 
 public class RecipeViewerRecyclerViewAdapter extends RecyclerView.Adapter<RecipeViewerRecyclerViewAdapter.ViewHolder> {
-    HashMap<Integer, Recipe> selectedRecipes;
+    HashMap<String, Recipe> selectedRecipes = new HashMap<>();
 
-    public RecipeViewerRecyclerViewAdapter(HashMap<Integer, Recipe> selectedRecipes) {
+    public HashMap<String, Recipe> getSelectedRecipes() {
+        return selectedRecipes;
+    }
+
+    public void setSelectedRecipes(HashMap<String, Recipe> selectedRecipes) {
         this.selectedRecipes = selectedRecipes;
+        notifyDataSetChanged();
     }
 
     @NonNull
@@ -26,9 +31,9 @@ public class RecipeViewerRecyclerViewAdapter extends RecyclerView.Adapter<Recipe
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
 
-        Integer[] keyset = (Integer[]) selectedRecipes.keySet().stream().toArray();
-        Integer key = keyset[position];
-        Recipe recipe = selectedRecipes.get(key);
+        Object[] keyset = selectedRecipes.keySet().stream().toArray();
+        Object key = keyset[position];
+        Recipe recipe = selectedRecipes.get(key.toString());
 
         RecipeViewOnlyCardBinding binding = holder.getBinding();
         binding.setItemAmount("x" + recipe);

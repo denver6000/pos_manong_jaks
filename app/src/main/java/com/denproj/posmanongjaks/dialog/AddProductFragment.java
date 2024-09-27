@@ -9,8 +9,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,20 +21,27 @@ import android.widget.Toast;
 import com.denproj.posmanongjaks.R;
 import com.denproj.posmanongjaks.adapter.RecipeViewerRecyclerViewAdapter;
 import com.denproj.posmanongjaks.databinding.FragmentAddProductBinding;
+import com.denproj.posmanongjaks.model.Product;
 import com.denproj.posmanongjaks.model.Recipe;
 import com.denproj.posmanongjaks.util.OnDialogFinished;
+import com.denproj.posmanongjaks.util.OnUpdateUI;
+import com.denproj.posmanongjaks.viewModel.SalesFragmentViewmodel;
 
 import java.util.HashMap;
+import java.util.Random;
 
 
 public class AddProductFragment extends DialogFragment {
 
 
     private OnDialogFinished<Void> onDialogFinished;
-    private RecipeViewerRecyclerViewAdapter adapter;
+    String branchId;
+    private RecipeViewerRecyclerViewAdapter adapter = new RecipeViewerRecyclerViewAdapter();
+    SalesFragmentViewmodel viewmodel;
 
-    public AddProductFragment(OnDialogFinished<Void> onDialogFinished) {
+    public AddProductFragment(OnDialogFinished<Void> onDialogFinished, String branchId) {
         this.onDialogFinished = onDialogFinished;
+        this.branchId = branchId;
     }
 
     @NonNull
@@ -40,13 +49,15 @@ public class AddProductFragment extends DialogFragment {
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         FragmentAddProductBinding binding = FragmentAddProductBinding.inflate(getLayoutInflater());
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+        viewmodel = new ViewModelProvider(requireActivity()).get(SalesFragmentViewmodel.class);
+        binding.setViewModel(viewmodel);
         binding.chosenRecipesList.setLayoutManager(new LinearLayoutManager(requireContext()));
+        binding.chosenRecipesList.setAdapter(adapter);
         binding.chooseProductRecipe.setOnClickListener(view -> {
-            new ChooseRecipeFragment(new OnDialogFinished<HashMap<Integer, Recipe>>() {
+            new ChooseRecipeFragment(new OnDialogFinished<HashMap<String, Recipe>>() {
                 @Override
-                public void onDialogFinishedSuccessfully(HashMap<Integer, Recipe> result) {
-                    adapter = new RecipeViewerRecyclerViewAdapter(result);
-                    binding.chosenRecipesList.setAdapter(adapter);
+                public void onDialogFinishedSuccessfully(HashMap<String, Recipe> result) {
+                    adapter.setSelectedRecipes(result);
                 }
 
                 @Override
@@ -58,7 +69,22 @@ public class AddProductFragment extends DialogFragment {
         });
 
         builder.setPositiveButton("Insert Product", (dialogInterface, i) -> {
+            if (adapter.getSelectedRecipes().isEmpty()) {
+                Toast.makeText(requireContext(), "No Recipe was Selected", Toast.LENGTH_SHORT).show();
+            } else {
+                viewmodel.addProduct(branchId, adapter.getSelectedRecipes(), new OnUpdateUI<Void>() {
+                    @Override
+                    public void onSuccess(Void result) {
+                        dismissNow();
+                    }
 
+                    @Override
+                    public void onFail(Exception e) {
+                        Log.d("AddProductFragment", e.getMessage());
+                        dismissNow();
+                    }
+                });
+            }
         });
 
         builder.setNegativeButton("Cancel", (dialogInterface, i) -> {
@@ -67,7 +93,13 @@ public class AddProductFragment extends DialogFragment {
 
 
 
+
+
         builder.setView(binding.getRoot());
         return builder.show();
     }
+
+
+
+
 }

@@ -21,6 +21,7 @@ import com.denproj.posmanongjaks.adapter.ItemSelectionRecyclerViewAdapter;
 import com.denproj.posmanongjaks.databinding.FragmentSelectItemBinding;
 import com.denproj.posmanongjaks.model.Item;
 import com.denproj.posmanongjaks.util.OnDataReceived;
+import com.denproj.posmanongjaks.util.OnUpdateUI;
 import com.denproj.posmanongjaks.viewModel.BranchFragmentViewmodel;
 
 import java.util.List;
@@ -46,7 +47,7 @@ public class SelectItemFragment extends DialogFragment {
         FragmentSelectItemBinding binding = FragmentSelectItemBinding.inflate(getLayoutInflater());
         AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity());
         viewmodel = new ViewModelProvider(requireParentFragment()).get(BranchFragmentViewmodel.class);
-        viewmodel.loadGlobalItemList(new OnDataReceived<List<Item>>() {
+        viewmodel.loadGlobalItemList(new OnUpdateUI<List<Item>>() {
             @Override
             public void onSuccess(List<Item> result) {
                 binding.globalItemList.setLayoutManager(new LinearLayoutManager(requireContext()));
@@ -57,12 +58,12 @@ public class SelectItemFragment extends DialogFragment {
 
             @Override
             public void onFail(Exception e) {
-                Log.e("Error", e.getMessage());
+                Toast.makeText(requireContext(), e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
             }
         });
 
         builder.setPositiveButton("Save Selection", (dialogInterface, i) -> {
-            viewmodel.saveSelectionToBranchList(branchId, adapter.getSelectedItems(), new OnDataReceived<Void>() {
+            viewmodel.saveSelectionToBranchList(branchId, adapter.getSelectedItems(), new OnUpdateUI<Void>() {
                 @Override
                 public void onSuccess(Void result) {
                     dismissNow();
@@ -70,9 +71,8 @@ public class SelectItemFragment extends DialogFragment {
 
                 @Override
                 public void onFail(Exception e) {
-                    Log.d("Error", e.getMessage());
-                }
-            });
+                    Toast.makeText(requireContext(), e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+                }});
         });
 
         builder.setNegativeButton("Cancel", (dialogInterface, i) -> {

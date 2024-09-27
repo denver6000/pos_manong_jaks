@@ -23,6 +23,7 @@ import com.denproj.posmanongjaks.adapter.ProductSelectionRecyclerViewAdapter;
 import com.denproj.posmanongjaks.databinding.FragmentSelectProductBinding;
 import com.denproj.posmanongjaks.model.Product;
 import com.denproj.posmanongjaks.util.OnDataReceived;
+import com.denproj.posmanongjaks.util.OnUpdateUI;
 import com.denproj.posmanongjaks.viewModel.SalesFragmentViewmodel;
 
 import java.util.List;
@@ -45,11 +46,12 @@ public class SelectProductFragment extends DialogFragment {
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         FragmentSelectProductBinding binding = FragmentSelectProductBinding.inflate(getLayoutInflater());
         AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity());
-        this.viewmodel = new ViewModelProvider(requireParentFragment()).get(SalesFragmentViewmodel.class);
+        this.viewmodel = new ViewModelProvider(requireActivity()).get(SalesFragmentViewmodel.class);
         adapter = new ProductSelectionRecyclerViewAdapter();
         binding.productSelectionRcv.setLayoutManager(new LinearLayoutManager(requireContext()));
         binding.productSelectionRcv.setAdapter(adapter);
-        viewmodel.loadGlobalList(new OnDataReceived<List<Product>>() {
+
+        viewmodel.loadGlobalList(new OnUpdateUI<List<Product>>() {
             @Override
             public void onSuccess(List<Product> result) {
                 Log.d("Results", result.size() + "");
@@ -58,9 +60,10 @@ public class SelectProductFragment extends DialogFragment {
 
             @Override
             public void onFail(Exception e) {
-                Log.d("Error", e.getMessage());
+                Toast.makeText(requireContext(), e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
             }
         });
+
         builder.setView(binding.getRoot());
 
         builder.setPositiveButton("Save Selection", (dialogInterface, i) -> {

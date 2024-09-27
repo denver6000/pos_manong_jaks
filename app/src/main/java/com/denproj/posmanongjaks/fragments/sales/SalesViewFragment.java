@@ -23,10 +23,12 @@ import com.denproj.posmanongjaks.dialog.SelectProductFragment;
 import com.denproj.posmanongjaks.model.Product;
 import com.denproj.posmanongjaks.util.OnDataReceived;
 import com.denproj.posmanongjaks.util.OnDialogFinished;
+import com.denproj.posmanongjaks.util.OnUpdateUI;
 import com.denproj.posmanongjaks.viewModel.BranchFragmentViewmodel;
 import com.denproj.posmanongjaks.viewModel.SalesFragmentViewmodel;
 
 import java.util.List;
+import java.util.Random;
 
 
 public class SalesViewFragment extends Fragment {
@@ -71,7 +73,7 @@ public class SalesViewFragment extends Fragment {
                     public void onDialogFailed(@Nullable Exception e) {
 
                     }
-                }).show(getParentFragmentManager(), "");
+                }, branchId).show(getChildFragmentManager(), "");
 
             });
 
@@ -81,7 +83,7 @@ public class SalesViewFragment extends Fragment {
     }
 
     public void loadProductsOnBranch (String branchId) {
-        viewmodel.loadProductsOfBranch(branchId, new OnDataReceived<List<Product>>() {
+        viewmodel.loadProductsOfBranch(branchId, new OnUpdateUI<List<Product>>() {
             @Override
             public void onSuccess(List<Product> result) {
                 Toast.makeText(requireContext(), "Result length " + result.size(), Toast.LENGTH_SHORT).show();
@@ -90,7 +92,7 @@ public class SalesViewFragment extends Fragment {
 
             @Override
             public void onFail(Exception e) {
-
+                Toast.makeText(requireContext(), e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -99,4 +101,6 @@ public class SalesViewFragment extends Fragment {
         adapter = new ProductsRecyclerViewAdapter(branchId);
         binding.menuRcv.setAdapter(adapter);
     }
+
+
 }

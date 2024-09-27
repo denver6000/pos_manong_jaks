@@ -27,35 +27,8 @@ public class MainViewModel extends ViewModel {
 
     }
 
-    public void  getRegisterItems(OnItemFetched<Item> onItemFetched) {
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference ref = database.getReference("items");
-        ref.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                ArrayList<Item> items = new ArrayList<>();
-                snapshot.getChildren().forEach(dataSnapshot -> {
-                    items.add(dataSnapshot.getValue(Item.class));
-                });
-                onItemFetched.onFetched(items);
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                onItemFetched.onError(error.toException());
-            }
-        });
-    }
-
     public void loadStocksAndProductsInRoom() {
 
-
-
-    }
-
-    public interface OnItemFetched<T> {
-       void onFetched(ArrayList<T> result);
-        void onError(Exception e);
     }
 
 }

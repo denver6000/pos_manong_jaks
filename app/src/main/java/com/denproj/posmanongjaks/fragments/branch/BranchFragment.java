@@ -22,6 +22,7 @@ import com.denproj.posmanongjaks.dialog.AddNewItemFragment;
 import com.denproj.posmanongjaks.dialog.SelectItemFragment;
 import com.denproj.posmanongjaks.model.Item;
 import com.denproj.posmanongjaks.util.OnDataReceived;
+import com.denproj.posmanongjaks.util.OnUpdateUI;
 import com.denproj.posmanongjaks.viewModel.BranchFragmentViewmodel;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -68,13 +69,15 @@ public class BranchFragment extends Fragment {
 
             });
 
-            viewmodel.getRealtimeBranchStocks(branchId, new OnDataReceived<List<Item>>() {
+            viewmodel.getRealtimeBranchStocks(branchId, new OnUpdateUI<List<Item>>() {
                 @Override
-                public void onSuccess(List<Item> result) { adapter.onDataSetChanged(result);}
+                public void onSuccess(List<Item> result) {
+                    adapter.onDataSetChanged(result);
+                }
 
                 @Override
                 public void onFail(Exception e) {
-                    Log.e("Error", e.getMessage());
+                    Toast.makeText(requireContext(), e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
                 }
             });
         });

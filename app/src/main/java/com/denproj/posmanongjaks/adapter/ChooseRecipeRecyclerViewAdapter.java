@@ -6,7 +6,6 @@ import android.view.ViewGroup;
 import android.widget.SeekBar;
 
 import androidx.annotation.NonNull;
-import androidx.lifecycle.ViewModel;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.denproj.posmanongjaks.R;
@@ -20,7 +19,7 @@ import java.util.List;
 public class ChooseRecipeRecyclerViewAdapter extends RecyclerView.Adapter<ChooseRecipeRecyclerViewAdapter.ViewHolder> {
 
     private List<Item> itemsList;
-    private HashMap<Integer, Recipe> selectedRecipes = new HashMap<>();
+    private HashMap<String, Recipe> selectedRecipes = new HashMap<>();
 
     public ChooseRecipeRecyclerViewAdapter(List<Item> itemsList) {
         this.itemsList = itemsList;
@@ -45,9 +44,9 @@ public class ChooseRecipeRecyclerViewAdapter extends RecyclerView.Adapter<Choose
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
                 if (i > 0) {
                     recipe.setAmount(i);
-                    selectedRecipes.put(item.getItem_id(), recipe);
+                    selectedRecipes.put(item.getItem_id() + "", recipe);
                 } else {
-                    selectedRecipes.remove(item.getItem_id());
+                    selectedRecipes.remove(item.getItem_id() + "");
                 }
             }
 
@@ -81,7 +80,7 @@ public class ChooseRecipeRecyclerViewAdapter extends RecyclerView.Adapter<Choose
         }
     }
 
-    public HashMap<Integer, Recipe> getSelectedRecipes() {
+    public HashMap<String, Recipe> getSelectedRecipes() {
         return selectedRecipes;
     }
 }
