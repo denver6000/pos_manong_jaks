@@ -1,10 +1,15 @@
 package com.denproj.posmanongjaks.dialog;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
@@ -38,6 +43,7 @@ public class AddProductFragment extends DialogFragment {
     String branchId;
     private RecipeViewerRecyclerViewAdapter adapter = new RecipeViewerRecyclerViewAdapter();
     SalesFragmentViewmodel viewmodel;
+    Uri selectedUri;
 
     public AddProductFragment(OnDialogFinished<Void> onDialogFinished, String branchId) {
         this.onDialogFinished = onDialogFinished;
@@ -85,6 +91,20 @@ public class AddProductFragment extends DialogFragment {
                     }
                 });
             }
+        });
+
+        ActivityResultLauncher<Intent> pickMedia = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), o -> {
+            if (o.getResultCode() == Activity.RESULT_OK && o.getData() != null) {
+                selectedUri = o.getData().getData();
+                viewmodel.uriMutableLiveData.setValue(selectedUri);
+                binding.productImagePreview.setImageURI(selectedUri);
+            }
+        });
+
+        binding.productImagePreview.setOnClickListener(view -> {
+            Intent intent = new Intent(Intent.ACTION_PICK);
+            intent.setType("image/*.jpg");
+            pickMedia.launch(intent);
         });
 
         builder.setNegativeButton("Cancel", (dialogInterface, i) -> {

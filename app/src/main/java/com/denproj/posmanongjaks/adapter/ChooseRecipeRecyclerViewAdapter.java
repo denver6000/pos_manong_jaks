@@ -4,6 +4,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.SeekBar;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -40,14 +41,10 @@ public class ChooseRecipeRecyclerViewAdapter extends RecyclerView.Adapter<Choose
         Recipe recipe = new Recipe();
         recipe.setItemName(item.getItem_name());
         binding.itemAmountSeekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            int progressChangedValue = 0;
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                if (i > 0) {
-                    recipe.setAmount(i);
-                    selectedRecipes.put(item.getItem_id() + "", recipe);
-                } else {
-                    selectedRecipes.remove(item.getItem_id() + "");
-                }
+                progressChangedValue = i;
             }
 
             @Override
@@ -57,7 +54,14 @@ public class ChooseRecipeRecyclerViewAdapter extends RecyclerView.Adapter<Choose
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-
+                String itemId = String.valueOf(item.getItem_id());
+                binding.setProductAmount(String.valueOf(progressChangedValue));
+                if (progressChangedValue > 0) {
+                    recipe.setAmount(progressChangedValue);
+                    selectedRecipes.put(itemId, recipe);
+                } else {
+                    selectedRecipes.remove(itemId);
+                }
             }
         });
     }

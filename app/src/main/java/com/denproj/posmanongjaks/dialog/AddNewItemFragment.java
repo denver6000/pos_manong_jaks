@@ -48,19 +48,17 @@ public class AddNewItemFragment extends DialogFragment {
     private String selectedUnit = null;
     private String selectedCategory = null;
 
+    ActivityResultLauncher<Intent> pickMedia = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), o -> {
+        if (o.getResultCode() == Activity.RESULT_OK && o.getData() != null) {
+            selectedUri = o.getData().getData();
+        }
+    });
+
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         binding = FragmentAddNewItemBinding.inflate(getLayoutInflater());
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        ActivityResultLauncher<Intent> pickMedia = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
-            @Override
-            public void onActivityResult(ActivityResult o) {
-                if (o.getResultCode() == Activity.RESULT_OK && o.getData() != null) {
-                    selectedUri = o.getData().getData();
-                }
-            }
-        });
 
         binding.chooseImage.setOnClickListener(view -> {
             Intent intent = new Intent(Intent.ACTION_PICK);

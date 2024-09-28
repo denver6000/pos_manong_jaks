@@ -5,7 +5,7 @@ import com.denproj.posmanongjaks.util.OnDataReceived;
 
 import java.util.List;
 
-public interface ProductRepository {
+public interface ProductRepository extends ImageRepository {
 
     void fetchProductsFromGlobal(OnDataReceived<List<Product>> onDataReceived);
     void fetchProductsFromBranch(String branchId, OnDataReceived<List<Product>> onDataReceived);

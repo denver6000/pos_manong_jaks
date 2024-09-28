@@ -37,13 +37,7 @@
                 android:inputType="numberDecimal"
                 android:text="@={viewModel.productPrice}"/>
 
-            <Button
-                android:id="@+id/button4"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Choose Image" />
-
-            <ImageView
+            <ImageButton
                 android:id="@+id/productImagePreview"
                 android:layout_width="match_parent"
                 android:layout_height="150dp"

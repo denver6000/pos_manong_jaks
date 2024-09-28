@@ -36,7 +36,7 @@ public class RecipeViewerRecyclerViewAdapter extends RecyclerView.Adapter<Recipe
         Recipe recipe = selectedRecipes.get(key.toString());
 
         RecipeViewOnlyCardBinding binding = holder.getBinding();
-        binding.setItemAmount("x" + recipe);
+        binding.setItemAmount("x" + recipe.getAmount());
         binding.setItemName(recipe.getItemName());
     }
 

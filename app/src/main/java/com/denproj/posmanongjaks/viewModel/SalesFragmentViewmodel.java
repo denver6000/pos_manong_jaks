@@ -3,8 +3,11 @@ package com.denproj.posmanongjaks.viewModel;
 import static com.denproj.posmanongjaks.repository.imp.ProductRepositoryImpl.PATH_TO_GLOBAL_ITEM_LIST;
 import static com.denproj.posmanongjaks.repository.imp.ProductRepositoryImpl.PATH_TO_GLOBAL_PRODUCT_LIST;
 
+import android.net.Uri;
+
 import androidx.annotation.NonNull;
 import androidx.databinding.ObservableField;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.denproj.posmanongjaks.model.Product;
@@ -36,6 +39,7 @@ public class SalesFragmentViewmodel extends ViewModel {
 
     public ObservableField<String> productName = new ObservableField<>("");
     public ObservableField<String> productPrice = new ObservableField<>("");
+    public MutableLiveData<Uri> uriMutableLiveData = new MutableLiveData<>();
 
     @Inject
     public SalesFragmentViewmodel (ProductRepository productRepository) {
@@ -106,10 +110,21 @@ public class SalesFragmentViewmodel extends ViewModel {
         product.setProduct_name(productName.get());
         product.setProduct_price(Float.parseFloat(productPrice.get()));
         product.setRecipes(recipes);
-        productRepository.insertProduct(branchId, product, new OnDataReceived<Void>() {
+        productRepository.insertImage(uriMutableLiveData.getValue(), new OnDataReceived<String>() {
             @Override
-            public void onSuccess(Void result) {
-                onUpdateUI.onSuccess(result);
+            public void onSuccess(String result) {
+                product.setProduct_image_path(result);
+                productRepository.insertProduct(branchId, product, new OnDataReceived<Void>() {
+                    @Override
+                    public void onSuccess(Void result) {
+                        onUpdateUI.onSuccess(result);
+                    }
+
+                    @Override
+                    public void onFail(Exception e) {
+                        onUpdateUI.onFail(e);
+                    }
+                });
             }
 
             @Override
@@ -117,6 +132,7 @@ public class SalesFragmentViewmodel extends ViewModel {
                 onUpdateUI.onFail(e);
             }
         });
+
     }
 
     public int generateRandomSixDigitId() {
