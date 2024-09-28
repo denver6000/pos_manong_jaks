@@ -74,9 +74,9 @@ public class ProductRepositoryImpl implements ProductRepository {
     }
 
     @Override
-    public void insertImage(Uri uri, OnDataReceived<String> onDataReceived) {
+    public void insertImage(Uri uri, String imageFileName, OnDataReceived<String> onDataReceived) {
         FirebaseStorage storage = FirebaseStorage.getInstance();
-        storage.getReference(PRODUCT_IMAGE_PATH).putFile(uri).addOnCompleteListener(task -> {
+        storage.getReference(PRODUCT_IMAGE_PATH).child(imageFileName).putFile(uri).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 onDataReceived.onSuccess(task.getResult().getMetadata().getName());
             } else {
@@ -89,7 +89,6 @@ public class ProductRepositoryImpl implements ProductRepository {
     public void getImage(String path, OnDataReceived<String> onDataReceived) {
 
     }
-
 
 
 }

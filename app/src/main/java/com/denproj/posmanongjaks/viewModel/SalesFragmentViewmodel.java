@@ -110,7 +110,7 @@ public class SalesFragmentViewmodel extends ViewModel {
         product.setProduct_name(productName.get());
         product.setProduct_price(Float.parseFloat(productPrice.get()));
         product.setRecipes(recipes);
-        productRepository.insertImage(uriMutableLiveData.getValue(), new OnDataReceived<String>() {
+        productRepository.insertImage(uriMutableLiveData.getValue(), generateImageName(), new OnDataReceived<String>() {
             @Override
             public void onSuccess(String result) {
                 product.setProduct_image_path(result);
@@ -133,6 +133,10 @@ public class SalesFragmentViewmodel extends ViewModel {
             }
         });
 
+    }
+
+    private String generateImageName() {
+        return System.currentTimeMillis() + "-" + productName.get() + ".jpg";
     }
 
     public int generateRandomSixDigitId() {
