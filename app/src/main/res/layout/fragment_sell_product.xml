@@ -3,13 +3,13 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".fragments.branch.ManageStocksFragment"
+    tools:context=".fragments.pos.SellProductFragment"
     android:orientation="vertical">
 
-
     <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/productsList"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
         android:layout_weight="1" />
 
     <LinearLayout
@@ -18,9 +18,9 @@
         android:orientation="horizontal">
 
         <Button
-            android:id="@+id/button4"
+            android:id="@+id/button3"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:text="Save Changes" />
+            android:text="Sell Selected" />
     </LinearLayout>
 </LinearLayout>

@@ -3,9 +3,11 @@ package com.denproj.posmanongjaks.hilt.module;
 import com.denproj.posmanongjaks.repository.base.ItemRepository;
 import com.denproj.posmanongjaks.repository.base.LoginRepository;
 import com.denproj.posmanongjaks.repository.base.ProductRepository;
+import com.denproj.posmanongjaks.repository.base.RecipeRepository;
 import com.denproj.posmanongjaks.repository.imp.ItemRepositoryImpl;
 import com.denproj.posmanongjaks.repository.imp.LoginRepositoryImpl;
 import com.denproj.posmanongjaks.repository.imp.ProductRepositoryImpl;
+import com.denproj.posmanongjaks.repository.imp.RecipeRepositoryImpl;
 
 import dagger.Module;
 import dagger.Provides;
@@ -31,6 +33,7 @@ public class RepositoryModule {
         return new ProductRepositoryImpl();
     }
 
-
+    @Provides
+    RecipeRepository provideRecipeRepository() { return new RecipeRepositoryImpl(); }
 
 }

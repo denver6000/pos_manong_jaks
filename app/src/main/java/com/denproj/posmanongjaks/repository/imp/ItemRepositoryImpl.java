@@ -1,5 +1,6 @@
 package com.denproj.posmanongjaks.repository.imp;
 
+import android.net.Uri;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -66,6 +67,27 @@ public class ItemRepositoryImpl implements ItemRepository {
             } else {
                 onComplete.onFail(task.getException());
             }
+        });
+    }
+
+    @Override
+    public void insertImage(Uri uri, String imageName, OnDataReceived<String> onDataReceived) {
+
+    }
+
+    @Override
+    public void getImage(String path, OnDataReceived<String> onDataReceived) {
+
+    }
+
+    @Override
+    public void insertRecipeToBranch(String branchId, String itemId, OnDataReceived<Void> onDataReceived) {
+        FirebaseFirestore firestore = FirebaseFirestore.getInstance();
+        FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
+        DatabaseReference globalItemListRef = firebaseDatabase.getReference(ItemRepositoryImpl.GLOBAL_PATH_TO_ITEM_LIST + "/" + branchId);
+        firestore.collection(ItemRepositoryImpl.GLOBAL_PATH_TO_ITEM_LIST).document(itemId).addSnapshotListener((value, error) -> {
+            Item item = value.toObject(Item.class);
+            globalItemListRef.child(itemId).setValue(item);
         });
     }
 }

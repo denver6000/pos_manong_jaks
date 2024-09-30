@@ -2,6 +2,8 @@ package com.denproj.posmanongjaks.viewModel;
 
 import androidx.lifecycle.ViewModel;
 
+import com.denproj.posmanongjaks.model.Role;
+import com.denproj.posmanongjaks.model.User;
 import com.denproj.posmanongjaks.repository.base.LoginRepository;
 import com.denproj.posmanongjaks.util.OnDataReceived;
 import com.denproj.posmanongjaks.util.OnUpdateUI;
@@ -26,10 +28,20 @@ public class LoginFragmentViewmodel extends ViewModel {
         loginRepository.loginUser(email, password, new OnDataReceived<String>() {
             @Override
             public void onSuccess(String result) {
-                loginRepository.getUserBranchId(new OnDataReceived<String>() {
+                loginRepository.getUserBranchId(new OnDataReceived<User>() {
                     @Override
-                    public void onSuccess(String branchId) {
-                        onUpdateUI.onSuccess(branchId);
+                    public void onSuccess(User user) {
+                        loginRepository.getUserRole(user.getRole_id(), new OnDataReceived<Role>() {
+                            @Override
+                            public void onSuccess(Role result) {
+                                onUpdateUI.onSuccess(user.getBranch_id());
+                            }
+
+                            @Override
+                            public void onFail(Exception e) {
+                                onUpdateUI.onFail(e);
+                            }
+                        });
                     }
 
                     @Override

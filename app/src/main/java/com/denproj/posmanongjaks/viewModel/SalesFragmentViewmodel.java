@@ -1,9 +1,10 @@
 package com.denproj.posmanongjaks.viewModel;
 
+import static com.denproj.posmanongjaks.repository.imp.ProductRepositoryImpl.PATH_TO_BRANCH_ITEMS;
 import static com.denproj.posmanongjaks.repository.imp.ProductRepositoryImpl.PATH_TO_GLOBAL_ITEM_LIST;
-import static com.denproj.posmanongjaks.repository.imp.ProductRepositoryImpl.PATH_TO_GLOBAL_PRODUCT_LIST;
 
 import android.net.Uri;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.databinding.ObservableField;
@@ -13,6 +14,7 @@ import androidx.lifecycle.ViewModel;
 import com.denproj.posmanongjaks.model.Product;
 import com.denproj.posmanongjaks.model.Recipe;
 import com.denproj.posmanongjaks.repository.base.ProductRepository;
+import com.denproj.posmanongjaks.repository.base.RecipeRepository;
 import com.denproj.posmanongjaks.util.OnDataReceived;
 import com.denproj.posmanongjaks.util.OnUpdateUI;
 import com.google.firebase.database.DataSnapshot;
@@ -20,9 +22,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.firestore.FirebaseFirestore;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
@@ -36,14 +36,16 @@ public class SalesFragmentViewmodel extends ViewModel {
 
 
     ProductRepository productRepository;
+    RecipeRepository recipeRepository;
 
     public ObservableField<String> productName = new ObservableField<>("");
     public ObservableField<String> productPrice = new ObservableField<>("");
     public MutableLiveData<Uri> uriMutableLiveData = new MutableLiveData<>();
 
     @Inject
-    public SalesFragmentViewmodel (ProductRepository productRepository) {
+    public SalesFragmentViewmodel (ProductRepository productRepository, RecipeRepository recipeRepository) {
         this.productRepository = productRepository;
+        this.recipeRepository = recipeRepository;
     }
 
     public void loadGlobalList(OnUpdateUI<List<Product>> onUpdateUI) {
@@ -76,7 +78,7 @@ public class SalesFragmentViewmodel extends ViewModel {
 
     public void saveSelectedProductToBranch(String branchId, HashMap<String, Product> selectedItems) {
         FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference ref = database.getReference(PATH_TO_GLOBAL_ITEM_LIST+"/"+branchId);
+        DatabaseReference ref = database.getReference(PATH_TO_BRANCH_ITEMS+"/"+branchId);
         selectedItems.values().forEach(s -> s.getRecipes().forEach((s1, recipe) -> {
             ref.child(s1).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
@@ -104,7 +106,7 @@ public class SalesFragmentViewmodel extends ViewModel {
                 .addOnFailureListener(onPriceChanged::onFail);
     }
 
-    public void addProduct(String branchId, HashMap<String, Recipe> recipes, OnUpdateUI<Void> onUpdateUI) {
+    public void addProductToGlobalAndBranch(String branchId, HashMap<String, Recipe> recipes, OnUpdateUI<Void> onUpdateUI) {
         Product product = new Product();
         product.setProduct_id(generateRandomSixDigitId());
         product.setProduct_name(productName.get());
@@ -114,10 +116,22 @@ public class SalesFragmentViewmodel extends ViewModel {
             @Override
             public void onSuccess(String result) {
                 product.setProduct_image_path(result);
-                productRepository.insertProduct(branchId, product, new OnDataReceived<Void>() {
+                productRepository.insertProductToBranch(branchId, product, new OnDataReceived<Void>() {
                     @Override
                     public void onSuccess(Void result) {
+                        productRepository.loadRecipeIntoBranchStocks(branchId, product.getRecipes(), null);
                         onUpdateUI.onSuccess(result);
+                        productRepository.insertProductToGlobalList(product, new OnDataReceived<Void>() {
+                            @Override
+                            public void onSuccess(Void result) {
+                                onUpdateUI.onSuccess(result);
+                            }
+
+                            @Override
+                            public void onFail(Exception e) {
+                                onUpdateUI.onFail(e);
+                            }
+                        });
                     }
 
                     @Override
@@ -126,7 +140,6 @@ public class SalesFragmentViewmodel extends ViewModel {
                     }
                 });
             }
-
             @Override
             public void onFail(Exception e) {
                 onUpdateUI.onFail(e);
