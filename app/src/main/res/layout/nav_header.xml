@@ -8,22 +8,18 @@
     android:background="@drawable/header_background">
 
     <ImageView
-        android:layout_width="72dp"
-        android:layout_height="72dp"
-        android:src="@drawable/ic_launcher_foreground"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:src="@drawable/manongjaks_logo"
         />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Android Studio"
+        android:text="Manong Jak's Staff Accounts"
         android:textColor="@android:color/black"
         android:textSize="18sp"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:layout_marginTop="-30dp" /> <!-- Negative margin to bring text closer -->
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="android.studio@android.com"
-        android:textColor="@android:color/black" />
 </LinearLayout>
