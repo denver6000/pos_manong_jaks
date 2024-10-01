@@ -41,13 +41,16 @@ import java.util.function.Consumer;
 public class BranchFragment extends Fragment {
 
     BranchFragmentViewmodel viewmodel;
-    ItemsRecyclerViewAdapter adapter;
+    ItemsRecyclerViewAdapter adapter = new ItemsRecyclerViewAdapter(itemId -> {
+
+    });
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         FragmentBranchBinding binding = FragmentBranchBinding.inflate(inflater);
         this.viewmodel = new ViewModelProvider(requireActivity()).get(BranchFragmentViewmodel.class);
+
 
         viewmodel.branchIdLiveData.observe(getViewLifecycleOwner(), branchId -> {
             if (branchId.isEmpty()) {
@@ -65,14 +68,12 @@ public class BranchFragment extends Fragment {
                 addNewItemFragment.show(getChildFragmentManager(), "");
             });
 
-            adapter = new ItemsRecyclerViewAdapter(itemId -> {
-
-            });
 
             viewmodel.getRealtimeBranchStocks(branchId, new OnUpdateUI<List<Item>>() {
                 @Override
                 public void onSuccess(List<Item> result) {
                     adapter.onDataSetChanged(result);
+                    Toast.makeText(requireContext(), result.size() + " size", Toast.LENGTH_SHORT).show();
                 }
 
                 @Override

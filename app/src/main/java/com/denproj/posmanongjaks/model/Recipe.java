@@ -1,5 +1,7 @@
 package com.denproj.posmanongjaks.model;
 
+import androidx.annotation.NonNull;
+
 import com.google.firebase.firestore.IgnoreExtraProperties;
 
 @IgnoreExtraProperties
@@ -24,5 +26,11 @@ public class Recipe {
 
     public void setItemName(String itemName) {
         this.itemName = itemName;
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        return this.getItemName() + "\n x " + getAmount();
     }
 }

@@ -13,6 +13,8 @@ import com.denproj.posmanongjaks.repository.base.ImageRepository;
 import com.denproj.posmanongjaks.repository.base.ProductRepository;
 import com.denproj.posmanongjaks.util.OnDataReceived;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -58,21 +60,15 @@ public class ProductRepositoryImpl implements ProductRepository {
     @Override
     public void fetchProductsFromBranch(String branchId, OnDataReceived<List<Product>> onProductListReceived) {
         FirebaseDatabase realtimeDatabase = FirebaseDatabase.getInstance();
-        realtimeDatabase.getReference(PATH_TO_BRANCH_PRODUCTS + "/" + branchId).addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                List<Product> products = new ArrayList<>();
-                snapshot.getChildren().forEach(dataSnapshot -> {
-
-                });
-                onProductListReceived.onSuccess(products);
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                onProductListReceived.onFail(error.toException());
-            }
-        });
+        realtimeDatabase.getReference(PATH_TO_BRANCH_PRODUCTS + "/" + branchId)
+                .get()
+                .addOnSuccessListener(dataSnapshot -> {
+                    List<Product> products = new ArrayList<>();
+                    dataSnapshot.getChildren().forEach(dataSnapshot1 -> {
+                        products.add(dataSnapshot1.getValue(Product.class));
+                    });
+                    onProductListReceived.onSuccess(products);
+                }).addOnFailureListener(onProductListReceived::onFail);
 
     }
 

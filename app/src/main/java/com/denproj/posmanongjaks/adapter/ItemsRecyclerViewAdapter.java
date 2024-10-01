@@ -27,8 +27,9 @@ public class ItemsRecyclerViewAdapter extends RecyclerView.Adapter<ItemsRecycler
     }
 
     public void onDataSetChanged(List<Item> items) {
-        this.items = items;
-        notifyDataSetChanged();
+        this.items.clear();
+        this.items.addAll(items);
+        notifyItemRangeChanged(0, items.size());
     }
 
     @NonNull
@@ -40,25 +41,27 @@ public class ItemsRecyclerViewAdapter extends RecyclerView.Adapter<ItemsRecycler
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
 
-//        Item item = items.get(position);
-//        ItemCardWithStockBinding binding = holder.binding;
-//        binding.setItemName(item.getItemName());
-//        binding.setItemStockCount(item.getStockNumber() + "");
-//        ImagePathBinder.bindImagePathToImageView(item.getItemImage(), binding.stockItemImageView, binding.getRoot().getContext(), new ImagePathBinder.OnImageBound() {
-//            @Override
-//            public void onBound() {
-//
-//            }
-//
-//            @Override
-//            public void onError(Exception e) {
-//
-//            }
-//        });
-//
-//        binding.getRoot().setOnClickListener(view -> {
-//            navigate.onNavigate(item.getItemId());
-//        });
+        Item item = items.get(position);
+        ItemCardWithStockBinding binding = holder.binding;
+        binding.setItemName(item.getItem_name());
+        binding.setItemStockCount(item.getItem_quantity() + "");
+        binding.setItemUnit(item.getItem_unit());
+        binding.setItemPrice(item.getItem_price() + "Pesos");
+        ImagePathBinder.bindImagePathToImageView(item.getItem_image_path(), binding.stockItemImageView, binding.getRoot().getContext(), new ImagePathBinder.OnImageBound() {
+            @Override
+            public void onBound() {
+
+            }
+
+            @Override
+            public void onError(Exception e) {
+
+            }
+        });
+
+        binding.getRoot().setOnClickListener(view -> {
+            navigate.onNavigate(item.getItem_id() + "");
+        });
 
     }
 
