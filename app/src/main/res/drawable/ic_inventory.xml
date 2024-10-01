@@ -3,10 +3,37 @@
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
+
+    <!-- First row of boxes (representing items in storage) -->
     <path
         android:fillColor="#000000"
-        android:pathData="M4,4H20V20H4ZM5,5V19H19V5Z" />
+        android:pathData="M5,5H9V9H5Z" />
     <path
         android:fillColor="#000000"
-        android:pathData="M6,6H18V18H6Z" />
+        android:pathData="M10,5H14V9H10Z" />
+    <path
+        android:fillColor="#000000"
+        android:pathData="M15,5H19V9H15Z" />
+
+    <!-- Second row of boxes -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M5,10H9V14H5Z" />
+    <path
+        android:fillColor="#000000"
+        android:pathData="M10,10H14V14H10Z" />
+    <path
+        android:fillColor="#000000"
+        android:pathData="M15,10H19V14H15Z" />
+
+    <!-- Third row of boxes -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M5,15H9V19H5Z" />
+    <path
+        android:fillColor="#000000"
+        android:pathData="M10,15H14V19H10Z" />
+    <path
+        android:fillColor="#000000"
+        android:pathData="M15,15H19V19H15Z" />
 </vector>
