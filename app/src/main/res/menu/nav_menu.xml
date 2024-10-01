@@ -7,9 +7,19 @@
         android:icon="@drawable/ic_inventory" />
 
     <item
+        android:id="@+id/menus"
+        android:title="Menus"
+        android:icon="@drawable/ic_menus" /> <!-- New Menu item -->
+
+    <item
         android:id="@+id/sales_view"
         android:title="Sales"
         android:icon="@drawable/ic_sales" />
+
+    <item
+        android:id="@+id/pos_view"
+        android:title="Point of Sales"
+        android:icon="@drawable/ic_pos" />
 
     <item
         android:id="@+id/manage_stocks"
@@ -20,6 +30,7 @@
         android:id="@+id/manage_sales"
         android:title="Manage Sales"
         android:icon="@drawable/ic_manage_sales" />
+
 
     <item
         android:id="@+id/settings"
