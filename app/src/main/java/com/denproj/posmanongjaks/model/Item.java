@@ -1,9 +1,15 @@
 package com.denproj.posmanongjaks.model;
 
 
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
+
+@Entity
 public class Item {
 
     private String item_image_path;
+
+    @PrimaryKey
     private int item_id;
     private String item_name;
     private String item_category;

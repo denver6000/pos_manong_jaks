@@ -14,6 +14,15 @@ import dagger.hilt.components.SingletonComponent;
 
 @Module
 @InstallIn(SingletonComponent.class)
-public class AppModule {
+public class RoomModule {
 
+    @Provides
+    AppDatabase provideAppDatabase(@ApplicationContext Context context) {
+        return AppDatabase.getInstance(context);
+    }
+
+    @Provides
+    ProductsDao provideProductsDao(AppDatabase appDatabase) {
+        return appDatabase.getProductsDao();
+    }
 }

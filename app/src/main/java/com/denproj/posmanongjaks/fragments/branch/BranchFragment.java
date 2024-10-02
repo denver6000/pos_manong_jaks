@@ -7,6 +7,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import android.util.Log;
@@ -57,7 +58,7 @@ public class BranchFragment extends Fragment {
                 return;
             }
 
-            binding.stocksRcv.setLayoutManager(new LinearLayoutManager(requireContext()));
+            binding.stocksRcv.setLayoutManager(new GridLayoutManager(requireContext(), 2));
             binding.stocksRcv.setAdapter(adapter);
             binding.selectItemsBtn.setOnClickListener(view -> {
                 SelectItemFragment itemFragment = new SelectItemFragment(branchId);

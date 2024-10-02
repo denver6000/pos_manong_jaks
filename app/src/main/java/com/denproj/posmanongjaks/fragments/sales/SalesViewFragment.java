@@ -76,7 +76,13 @@ public class SalesViewFragment extends Fragment {
                 }, branchId).show(getChildFragmentManager(), "");
 
             });
+            binding.sellModeToggle.setOnClickListener(view -> adapter.toggleSellMode(!adapter.getIsToggled()));
 
+        });
+
+        binding.sellBtn.setOnClickListener(view -> {
+            Toast.makeText(requireContext(), "Sold", Toast.LENGTH_SHORT).show();
+            viewmodel.sell(adapter.getSelectedProducts());
         });
 
         return binding.getRoot();

@@ -25,6 +25,20 @@
             android:text="Add New Product" />
 
         <Button
+            android:id="@+id/sellModeToggle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Sell Mode" />
+
+        <Button
+            android:id="@+id/sellBtn"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Sell" />
+
+        <Button
             android:id="@+id/addProductToBranch"
             android:layout_width="0dp"
             android:layout_height="wrap_content"

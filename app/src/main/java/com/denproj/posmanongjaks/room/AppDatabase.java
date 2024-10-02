@@ -6,11 +6,14 @@ import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
+import com.denproj.posmanongjaks.model.Item;
+import com.denproj.posmanongjaks.model.Product;
+import com.denproj.posmanongjaks.model.Sale;
 import com.denproj.posmanongjaks.room.dao.ProductsDao;
 import com.denproj.posmanongjaks.room.entity.Items;
 import com.denproj.posmanongjaks.room.entity.Products;
 
-@Database(entities = {Items.class, Products.class}, exportSchema = false, version = 1)
+@Database(entities = {Item.class, Product.class, Sale.class}, exportSchema = false, version = 1)
 public abstract class AppDatabase extends RoomDatabase {
 
     private static AppDatabase database = null;
@@ -24,5 +27,4 @@ public abstract class AppDatabase extends RoomDatabase {
     }
 
     public abstract ProductsDao getProductsDao();
-
 }

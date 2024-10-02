@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.CompoundButton;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -20,13 +21,25 @@ import com.denproj.posmanongjaks.repository.imp.ProductRepositoryImpl;
 import com.denproj.posmanongjaks.util.ImagePathBinder;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.function.Consumer;
 
 public class ProductsRecyclerViewAdapter extends RecyclerView.Adapter<ProductsRecyclerViewAdapter.ViewHolder> {
 
     List<Product> productList = new ArrayList<>();
+    private HashMap<Product, Integer> selectedProducts = new HashMap<>();
     String branchId;
+    private boolean isToggled = false;
+
+    public void toggleSellMode(boolean isToggled) {
+        this.isToggled = isToggled;
+        notifyItemRangeChanged(0, getItemCount());
+    }
+
+    public boolean getIsToggled() {
+        return isToggled;
+    }
 
     public ProductsRecyclerViewAdapter(String branchId) {
         this.branchId = branchId;
@@ -65,13 +78,27 @@ public class ProductsRecyclerViewAdapter extends RecyclerView.Adapter<ProductsRe
 
         List<Recipe> recipeList = new ArrayList<>(product.getRecipes().values());
 
-        ArrayAdapter<Recipe> adapter = new ArrayAdapter<>(activity , android.R.layout.simple_list_item_2, recipeList);
+        ArrayAdapter<Recipe> adapter = new ArrayAdapter<>(activity, android.R.layout.simple_list_item_1, recipeList);
         binding.recipeListView.setAdapter(adapter);
-
-        binding.changePriceRedirect.setOnClickListener(view -> {
-            new ChangePriceFragment(this.branchId, String.valueOf(product.getProduct_id()), product.getProduct_name()).show(activity.getSupportFragmentManager(), "");
+        binding.sellToggle.setVisibility(isToggled ? View.VISIBLE : View.GONE);
+        binding.sellToggle.setOnCheckedChangeListener((compoundButton, b) -> {
+            if (b) {
+                selectedProducts.put(product, Integer.valueOf(binding.getSaleAmount()));
+            } else {
+                selectedProducts.remove(product);
+            }
         });
 
+
+
+//        binding.changePriceRedirect.setOnClickListener(view -> {
+//            new ChangePriceFragment(this.branchId, String.valueOf(product.getProduct_id()), product.getProduct_name()).show(activity.getSupportFragmentManager(), "");
+//        });
+
+    }
+
+    public HashMap<Product, Integer> getSelectedProducts() {
+        return selectedProducts;
     }
 
     @Override

@@ -15,6 +15,7 @@ import com.denproj.posmanongjaks.model.Product;
 import com.denproj.posmanongjaks.model.Recipe;
 import com.denproj.posmanongjaks.repository.base.ProductRepository;
 import com.denproj.posmanongjaks.repository.base.RecipeRepository;
+import com.denproj.posmanongjaks.repository.base.SaleRepository;
 import com.denproj.posmanongjaks.util.OnDataReceived;
 import com.denproj.posmanongjaks.util.OnUpdateUI;
 import com.google.firebase.database.DataSnapshot;
@@ -23,9 +24,12 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
+import java.util.function.BiConsumer;
 
 import javax.inject.Inject;
 
@@ -38,14 +42,17 @@ public class SalesFragmentViewmodel extends ViewModel {
     ProductRepository productRepository;
     RecipeRepository recipeRepository;
 
+    SaleRepository saleRepository;
+
     public ObservableField<String> productName = new ObservableField<>("");
     public ObservableField<String> productPrice = new ObservableField<>("");
     public MutableLiveData<Uri> uriMutableLiveData = new MutableLiveData<>();
 
     @Inject
-    public SalesFragmentViewmodel (ProductRepository productRepository, RecipeRepository recipeRepository) {
+    public SalesFragmentViewmodel(ProductRepository productRepository, RecipeRepository recipeRepository, SaleRepository saleRepository) {
         this.productRepository = productRepository;
         this.recipeRepository = recipeRepository;
+        this.saleRepository = saleRepository;
     }
 
     public void loadGlobalList(OnUpdateUI<List<Product>> onUpdateUI) {
@@ -146,6 +153,17 @@ public class SalesFragmentViewmodel extends ViewModel {
             }
         });
 
+    }
+
+    public void sell(HashMap<Product, Integer> selectedProductToSell) {
+        Calendar calendar = GregorianCalendar.getInstance();
+        selectedProductToSell.forEach((product, amount) -> {
+
+            int year = calendar.get(GregorianCalendar.YEAR);
+            int month = calendar.get(GregorianCalendar.MONTH);
+            int day = calendar.get(GregorianCalendar.DAY_OF_MONTH);
+            saleRepository.insertSaleRecord(amount, product, year, month, day, null);
+        });
     }
 
     private String generateImageName() {
