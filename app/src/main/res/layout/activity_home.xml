@@ -23,7 +23,7 @@
                 android:id="@+id/toolbar"
                 android:layout_height="?attr/actionBarSize"
                 android:layout_width="match_parent"
-                android:background="?attr/colorPrimary"
+                android:background="#FFC107"
                 app:navigationIcon="@drawable/baseline_window_24" />
 
         </com.google.android.material.appbar.AppBarLayout>
