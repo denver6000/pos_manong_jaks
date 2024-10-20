@@ -3,11 +3,14 @@ package com.denproj.posmanongjaks.adapter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.denproj.posmanongjaks.R;
 import com.denproj.posmanongjaks.databinding.RecipeViewOnlyCardBinding;
 import com.denproj.posmanongjaks.model.Recipe;
+
 import java.util.HashMap;
 
 public class RecipeViewerRecyclerViewAdapter extends RecyclerView.Adapter<RecipeViewerRecyclerViewAdapter.ViewHolder> {

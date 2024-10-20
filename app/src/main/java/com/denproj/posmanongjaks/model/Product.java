@@ -5,9 +5,12 @@ import androidx.room.Entity;
 import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
+import com.google.firebase.firestore.IgnoreExtraProperties;
+
 import java.util.HashMap;
 
 @Entity
+@IgnoreExtraProperties
 public class Product {
 
     @PrimaryKey
@@ -16,6 +19,7 @@ public class Product {
     private String product_image_path;
     private float product_price;
     private String product_category;
+
     @Ignore
     private HashMap<String, Recipe> recipes;
     public HashMap<String, Recipe> getRecipes() {

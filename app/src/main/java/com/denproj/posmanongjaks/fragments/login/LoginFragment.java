@@ -1,6 +1,10 @@
 package com.denproj.posmanongjaks.fragments.login;
 
 import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -8,16 +12,14 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Toast;
-
 import com.denproj.posmanongjaks.databinding.FragmentLoginBinding;
-import com.denproj.posmanongjaks.util.OnDataReceived;
+import com.denproj.posmanongjaks.model.SavedLoginCredentials;
+import com.denproj.posmanongjaks.session.SessionManager;
 import com.denproj.posmanongjaks.util.OnUpdateUI;
+import com.denproj.posmanongjaks.util.PingUtil;
 import com.denproj.posmanongjaks.viewModel.LoginFragmentViewmodel;
+import com.denproj.posmanongjaks.viewModel.MainViewModel;
+import com.google.firebase.auth.FirebaseAuth;
 
 import dagger.hilt.android.AndroidEntryPoint;
 
@@ -26,9 +28,9 @@ import dagger.hilt.android.AndroidEntryPoint;
 public class LoginFragment extends Fragment {
 
     private FragmentLoginBinding binding;
-
     LoginFragmentViewmodel viewmodel;
-
+    MainViewModel mainViewModel;
+    NavController navController;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -39,15 +41,53 @@ public class LoginFragment extends Fragment {
                              Bundle savedInstanceState) {
         this.binding = FragmentLoginBinding.inflate(inflater, container, false);
         this.viewmodel = new ViewModelProvider(requireActivity()).get(LoginFragmentViewmodel.class);
-        NavController navController = NavHostFragment.findNavController(this);
+
+        mainViewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
+        navController = NavHostFragment.findNavController(this);
+
+        mainViewModel.getBooleanLiveData().observe(getViewLifecycleOwner(), isNetAvailable -> {
+            viewmodel.attemptLogin(new LoginFragmentViewmodel.IsSavedLoginPresent() {
+                @Override
+                public void onHasSaved(SavedLoginCredentials savedLoginCredentials) {
+                    SessionManager.getInstance(savedLoginCredentials.getBranchId());
+                    navController.navigate(LoginFragmentDirections.actionLoginFragmentToHomeActivity(savedLoginCredentials.getBranchId(), isNetAvailable));
+                }
+
+                @Override
+                public void onNoSavedLogin() {
+                    setupLoginButton(isNetAvailable);
+                }
+            });
+        });
+
+        PingUtil.isInternetReachable(requireContext(), new OnUpdateUI<Boolean>() {
+            @Override
+            public void onSuccess(Boolean result) {
+                mainViewModel.getBooleanLiveData().setValue(false);
+            }
+
+            @Override
+            public void onFail(Exception e) {
+                mainViewModel.getBooleanLiveData().setValue(false);
+            }
+        });
+
+        return binding.getRoot();
+    }
+
+
+    public void setupLoginButton(Boolean isNetAvailable) {
         binding.loginActionButton.setOnClickListener(view -> {
-            String email = binding.getEmail();
-            String password = binding.getPassword();
+            String email = "denverballesteros7@gmail.com";
+            String password = "Pogiako012004";
             if (true) {
-                this.viewmodel.loginUserAndFetchBranchId("denverballesteros7@gmail.com", "Pogiako012004", new OnUpdateUI<String>() {
+                viewmodel.loginUserAndFetchBranchId(email, password, new OnUpdateUI<String>() {
                     @Override
                     public void onSuccess(String branchId) {
-                        navController.navigate(LoginFragmentDirections.actionLoginFragmentToHomeActivity(branchId));
+                        SessionManager.getInstance(branchId);
+                        mainViewModel.sync();
+                        navController.navigate(LoginFragmentDirections.actionLoginFragmentToHomeActivity(branchId, isNetAvailable));
+                        viewmodel.saveLogin(email, password,  FirebaseAuth.getInstance().getUid(), branchId);
                     }
 
                     @Override
@@ -59,8 +99,7 @@ public class LoginFragment extends Fragment {
                 Toast.makeText(requireContext(), "Empty Fields", Toast.LENGTH_SHORT).show();
             }
         });
-
-
-        return binding.getRoot();
     }
+
+
 }

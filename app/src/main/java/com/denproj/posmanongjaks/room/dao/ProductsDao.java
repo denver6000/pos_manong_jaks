@@ -4,28 +4,21 @@ import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.Query;
 
+import com.denproj.posmanongjaks.model.Item;
 import com.denproj.posmanongjaks.model.Product;
-import com.denproj.posmanongjaks.model.Sale;
 
 import java.util.List;
 
 @Dao
 public interface ProductsDao {
 
-
-    @Query("UPDATE Sale SET saleAmount = saleAmount + :amount WHERE productId = :productId")
-    void updateSaleAmountOfProduct(int amount, int productId);
-
-    @Query("SELECT EXISTS(SELECT * FROM Sale WHERE productId = :productId)")
-    Boolean checkIfProductIsSold(int productId);
-
     @Insert
-    void insertSale(Sale sale);
+    void insertProducts(Product... product);
 
-    @Query("SELECT * FROM Sale WHERE Sale.productId = :productId")
-    List<Sale> getSaleWithProductId(int productId);
+    @Query("SELECT * FROM Product")
+    List<Product> getAllProducts();
 
-    @Insert
-    void insertProduct(Product product);
+    @Query("SELECT * FROM Item WHERE ads_on = 1")
+    List<Item> getAllAdOns();
 
 }

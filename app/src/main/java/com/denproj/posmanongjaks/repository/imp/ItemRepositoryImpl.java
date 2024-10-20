@@ -1,12 +1,12 @@
 package com.denproj.posmanongjaks.repository.imp;
 
-import android.net.Uri;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 
 import com.denproj.posmanongjaks.model.Item;
 import com.denproj.posmanongjaks.repository.base.ItemRepository;
+import com.denproj.posmanongjaks.session.SessionManager;
 import com.denproj.posmanongjaks.util.OnDataReceived;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -24,6 +24,7 @@ public class ItemRepositoryImpl implements ItemRepository {
     public static final String GLOBAL_PATH_TO_ITEM_LIST = "items_list";
     @Override
     public void fetchItemsFromGlobal(OnDataReceived<List<Item>> onListReceived) {
+
         FirebaseFirestore firestore = FirebaseFirestore.getInstance();
         CollectionReference documentReference = firestore.collection(GLOBAL_PATH_TO_ITEM_LIST);
         documentReference.get().addOnSuccessListener(queryDocumentSnapshots -> {
@@ -36,7 +37,9 @@ public class ItemRepositoryImpl implements ItemRepository {
     }
 
     @Override
-    public void fetchItemsFromBranch(String branchId, OnDataReceived<List<Item>> onDataReceived) {
+    public void fetchItemsFromBranch(OnDataReceived<List<Item>> onDataReceived) {
+
+        String branchId = SessionManager.getInstance().getBranchId();
         FirebaseDatabase realtimeDatabase = FirebaseDatabase.getInstance();
         realtimeDatabase.getReference("/items_on_branches/"+branchId).addValueEventListener(new ValueEventListener() {
             @Override
@@ -57,10 +60,14 @@ public class ItemRepositoryImpl implements ItemRepository {
     }
 
     @Override
-    public void saveSelectionToBranchList(String branchId, HashMap<Integer, Item> selectedItemsMap, OnDataReceived<Void> onComplete) {
+    public void saveSelectionToBranchList(HashMap<String, Item> selectedItemsMap, OnDataReceived<Void> onComplete) {
+
+
+        String branchId = SessionManager.getInstance().getBranchId();
         FirebaseDatabase realtimeDatabase = FirebaseDatabase.getInstance();
         DatabaseReference itemsOnBranchesRef = realtimeDatabase.getReference("items_on_branches");
         DatabaseReference branchChild = itemsOnBranchesRef.child(branchId);
+
         branchChild.setValue(selectedItemsMap).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 onComplete.onSuccess(null);
@@ -71,12 +78,13 @@ public class ItemRepositoryImpl implements ItemRepository {
     }
 
     @Override
-    public void insertImage(Uri uri, String imageName, OnDataReceived<String> onDataReceived) {
+    public void insertItemsToBranch(List<Item> items, OnDataReceived<Void> onDataReceived) {
 
     }
 
+
     @Override
-    public void getImage(String path, OnDataReceived<String> onDataReceived) {
+    public void getImage(String path, OnDataReceived<String> onDataReceived) throws Exception {
 
     }
 

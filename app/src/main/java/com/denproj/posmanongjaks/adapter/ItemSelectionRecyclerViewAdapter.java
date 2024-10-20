@@ -14,15 +14,13 @@ import com.denproj.posmanongjaks.databinding.SelectableItemCardBinding;
 import com.denproj.posmanongjaks.model.Item;
 import com.google.firebase.storage.FirebaseStorage;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.function.Consumer;
 
 public class ItemSelectionRecyclerViewAdapter extends RecyclerView.Adapter<ItemSelectionRecyclerViewAdapter.ViewHolder> {
 
     List<Item> globalList;
-    HashMap<Integer, Item> selectedItemsMap = new HashMap<>();
+    HashMap<String, Item> selectedItemsMap = new HashMap<>();
 
     public ItemSelectionRecyclerViewAdapter(List<Item> globalList) {
         this.globalList = globalList;
@@ -51,7 +49,7 @@ public class ItemSelectionRecyclerViewAdapter extends RecyclerView.Adapter<ItemS
         binding.setItemUnit(item.getItem_unit());
         binding.itemCheckBox.setOnCheckedChangeListener((compoundButton, b) -> {
             if (b) {
-                selectedItemsMap.put(item.getItem_id(), item);
+                selectedItemsMap.put(String.valueOf(item.getItem_id()), item);
             } else {
                 selectedItemsMap.remove(item.getItem_id());
             }
@@ -72,7 +70,7 @@ public class ItemSelectionRecyclerViewAdapter extends RecyclerView.Adapter<ItemS
 
     }
 
-    public HashMap<Integer, Item> getSelectedItems() {
+    public HashMap<String, Item> getSelectedItems() {
         return this.selectedItemsMap;
     }
 }

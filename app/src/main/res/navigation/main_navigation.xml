@@ -22,5 +22,8 @@
         <argument
             android:name="branchId"
             app:argType="string" />
+        <argument
+            android:name="isConnectionReachable"
+            app:argType="boolean" />
     </activity>
 </navigation>

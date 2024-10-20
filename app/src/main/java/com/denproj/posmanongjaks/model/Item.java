@@ -1,6 +1,7 @@
 package com.denproj.posmanongjaks.model;
 
 
+import androidx.annotation.NonNull;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
@@ -15,9 +16,12 @@ public class Item {
     private String item_category;
     private int item_quantity;
     private String item_unit;
-    private float item_price;
+    private double item_price;
 
-    public Item(String item_image_path, int item_id, String item_name, String item_category, int item_quantity, String item_unit, float item_price) {
+
+    private boolean ads_on;
+
+    public Item(String item_image_path, int item_id, String item_name, String item_category, int item_quantity, String item_unit, double item_price, boolean ads_on) {
         this.item_image_path = item_image_path;
         this.item_id = item_id;
         this.item_name = item_name;
@@ -25,6 +29,15 @@ public class Item {
         this.item_quantity = item_quantity;
         this.item_unit = item_unit;
         this.item_price = item_price;
+        this.ads_on = ads_on;
+    }
+
+    public boolean isAds_on() {
+        return ads_on;
+    }
+
+    public void setAds_on(boolean ads_on) {
+        this.ads_on = ads_on;
     }
 
     public Item() {
@@ -79,12 +92,17 @@ public class Item {
         this.item_unit = item_unit;
     }
 
-    public float getItem_price() {
+    public double getItem_price() {
         return item_price;
     }
 
-    public void setItem_price(int item_price) {
+    public void setItem_price(double item_price) {
         this.item_price = item_price;
+    }
+    @NonNull
+    @Override
+    public String toString() {
+        return item_name;
     }
 }
 

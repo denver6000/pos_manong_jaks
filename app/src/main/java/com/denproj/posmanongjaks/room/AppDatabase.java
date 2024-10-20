@@ -9,11 +9,15 @@ import androidx.room.RoomDatabase;
 import com.denproj.posmanongjaks.model.Item;
 import com.denproj.posmanongjaks.model.Product;
 import com.denproj.posmanongjaks.model.Sale;
+import com.denproj.posmanongjaks.model.SaleItem;
+import com.denproj.posmanongjaks.model.SaleProduct;
+import com.denproj.posmanongjaks.model.SavedLoginCredentials;
+import com.denproj.posmanongjaks.room.dao.ItemsDao;
 import com.denproj.posmanongjaks.room.dao.ProductsDao;
-import com.denproj.posmanongjaks.room.entity.Items;
-import com.denproj.posmanongjaks.room.entity.Products;
+import com.denproj.posmanongjaks.room.dao.SalesDao;
+import com.denproj.posmanongjaks.room.dao.UserDao;
 
-@Database(entities = {Item.class, Product.class, Sale.class}, exportSchema = false, version = 1)
+@Database(entities = {Item.class, Product.class, Sale.class, SaleItem.class, SaleProduct.class, SavedLoginCredentials.class}, exportSchema = false, version = 13)
 public abstract class AppDatabase extends RoomDatabase {
 
     private static AppDatabase database = null;
@@ -26,5 +30,11 @@ public abstract class AppDatabase extends RoomDatabase {
         return database;
     }
 
+    public abstract SalesDao getSalesDao();
+
     public abstract ProductsDao getProductsDao();
+
+    public abstract ItemsDao getItemsDao();
+
+    public abstract UserDao getUserDao();
 }

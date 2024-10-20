@@ -25,13 +25,33 @@ public class AsyncRunner {
                 });
 
             } catch (Exception e) {
-                runner.onError(e);
+                mHandler.post(() -> {
+                    runner.onError(e);
+                });
             }
         });
     }
 
+    public static <T> void runAsync(MiniRunner<T> miniRunner) {
+        mExecutorService.execute(() -> {
+            try {
+                T result = miniRunner.onBackground();
+                mHandler.post(() -> miniRunner.onUI(result));
+            } catch (Exception e) {
+                mHandler.post(() -> miniRunner.onError(e));
+            }
+
+        });
+    }
+
+    public interface MiniRunner<T>{
+        T onBackground() throws Exception;
+        void onUI(T result);
+        void onError(Exception e);
+    }
+
     public interface Runner<T> {
-        T onBackground();
+        T onBackground() throws Exception;
         void onFinished(T result);
         void onUI(T result);
         void onError(Exception e);

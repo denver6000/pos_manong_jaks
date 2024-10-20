@@ -1,20 +1,11 @@
 package com.denproj.posmanongjaks.repository.imp;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
 import com.denproj.posmanongjaks.model.Role;
 import com.denproj.posmanongjaks.model.User;
 import com.denproj.posmanongjaks.repository.base.LoginRepository;
 import com.denproj.posmanongjaks.util.OnDataReceived;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
-import com.google.firebase.firestore.QuerySnapshot;
-import com.google.firebase.storage.FirebaseStorage;
 
 public class LoginRepositoryImpl implements LoginRepository {
 

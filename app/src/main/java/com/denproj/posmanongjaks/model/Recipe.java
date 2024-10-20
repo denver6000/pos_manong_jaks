@@ -7,8 +7,6 @@ import com.google.firebase.firestore.IgnoreExtraProperties;
 @IgnoreExtraProperties
 public class Recipe {
     private Integer amount;
-
-
     private String itemName;
 
 

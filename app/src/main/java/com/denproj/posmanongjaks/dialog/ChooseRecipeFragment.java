@@ -3,14 +3,13 @@ package com.denproj.posmanongjaks.dialog;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.os.Bundle;
+import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
-
-import android.util.Log;
-import android.widget.Toast;
 
 import com.denproj.posmanongjaks.adapter.ChooseRecipeRecyclerViewAdapter;
 import com.denproj.posmanongjaks.databinding.FragmentChooseRecipeBinding;
@@ -80,7 +79,11 @@ public class ChooseRecipeFragment extends DialogFragment {
                         task.getResult().forEach(queryDocumentSnapshot -> {
                             itemsList.add(queryDocumentSnapshot.toObject(Item.class));
                         });
-                        onDataReceived.onSuccess(itemsList);
+                        try {
+                            onDataReceived.onSuccess(itemsList);
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
                     } else {
                         onDataReceived.onFail(task.getException());
                     }

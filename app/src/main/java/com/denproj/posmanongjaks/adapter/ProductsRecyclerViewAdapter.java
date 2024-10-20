@@ -1,47 +1,36 @@
 package com.denproj.posmanongjaks.adapter;
 
+import android.content.Context;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.CompoundButton;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.fragment.app.FragmentActivity;
+import androidx.appcompat.widget.ListPopupWindow;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.denproj.posmanongjaks.R;
 import com.denproj.posmanongjaks.databinding.ProductCardBinding;
-import com.denproj.posmanongjaks.dialog.ChangePriceFragment;
+import com.denproj.posmanongjaks.model.AddOn;
+import com.denproj.posmanongjaks.model.Item;
 import com.denproj.posmanongjaks.model.Product;
-import com.denproj.posmanongjaks.model.Recipe;
-import com.denproj.posmanongjaks.repository.imp.ProductRepositoryImpl;
 import com.denproj.posmanongjaks.util.ImagePathBinder;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.function.Consumer;
 
 public class ProductsRecyclerViewAdapter extends RecyclerView.Adapter<ProductsRecyclerViewAdapter.ViewHolder> {
 
     List<Product> productList = new ArrayList<>();
-    private HashMap<Product, Integer> selectedProducts = new HashMap<>();
+    private HashMap<String, AddOn> selectedProducts = new HashMap<>();
+
+    List<Item> addOnsList;
     String branchId;
-    private boolean isToggled = false;
-
-    public void toggleSellMode(boolean isToggled) {
-        this.isToggled = isToggled;
-        notifyItemRangeChanged(0, getItemCount());
-    }
-
-    public boolean getIsToggled() {
-        return isToggled;
-    }
-
-    public ProductsRecyclerViewAdapter(String branchId) {
+    public ProductsRecyclerViewAdapter(List<Item> list, String branchId) {
+        this.addOnsList = list;
         this.branchId = branchId;
     }
 
@@ -60,11 +49,20 @@ public class ProductsRecyclerViewAdapter extends RecyclerView.Adapter<ProductsRe
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Product product = productList.get(position);
         ProductCardBinding binding = holder.binding;
+        binding.setSaleAmount(String.valueOf(0));
+
+        binding.incrementProductAmount.setOnClickListener(view -> {
+            selectedProducts.putIfAbsent(product.getProduct_id() + "", new AddOn(1, product));
+//            if (item != null) {
+//                selectedProducts.putIfAbsent(product.getProduct_id() + "_w_" + item.getItem_id(), new AddOn(item, 1, product));
+//            } else {
+//
+//            }
+        });
+
         binding.setProductName(product.getProduct_name());
         binding.setProductPrice(product.getProduct_price() + "");
-        FragmentActivity activity = (FragmentActivity) binding.getRoot().getContext();
-        Log.d("ProductsRcv", product.getProduct_image_path());
-        ImagePathBinder.bindImagePathToImageView(ProductRepositoryImpl.PRODUCT_IMAGE_PATH + "/" + product.getProduct_image_path(), binding.productImage, binding.getRoot().getContext(), new ImagePathBinder.OnImageBound() {
+        ImagePathBinder.bindImagePathToImageView(product.getProduct_image_path(), binding.productImage, binding.getRoot().getContext(), new ImagePathBinder.OnImageBound() {
             @Override
             public void onBound() {
 
@@ -72,38 +70,47 @@ public class ProductsRecyclerViewAdapter extends RecyclerView.Adapter<ProductsRe
 
             @Override
             public void onError(Exception e) {
-
+                Log.e("ProductsRCV", e.getMessage());
             }
         });
 
-        List<Recipe> recipeList = new ArrayList<>(product.getRecipes().values());
-
-        ArrayAdapter<Recipe> adapter = new ArrayAdapter<>(activity, android.R.layout.simple_list_item_1, recipeList);
-        binding.recipeListView.setAdapter(adapter);
-        binding.sellToggle.setVisibility(isToggled ? View.VISIBLE : View.GONE);
-        binding.sellToggle.setOnCheckedChangeListener((compoundButton, b) -> {
-            if (b) {
-                selectedProducts.put(product, Integer.valueOf(binding.getSaleAmount()));
-            } else {
-                selectedProducts.remove(product);
-            }
-        });
-
-
-
-//        binding.changePriceRedirect.setOnClickListener(view -> {
-//            new ChangePriceFragment(this.branchId, String.valueOf(product.getProduct_id()), product.getProduct_name()).show(activity.getSupportFragmentManager(), "");
+//        ArrayAdapter<Recipe> adapter = new ArrayAdapter<>(activity, android.R.layout.simple_list_item_1, recipeList);
+//        binding.recipeListView.setAdapter(adapter);
+//
+//        ArrayAdapter<Item> arrayAdapter = new ArrayAdapter<>(binding.getRoot().getContext(), android.R.layout.simple_list_item_1, this.addOnsList);
+//        binding.addOns.setAdapter(arrayAdapter);
+//        binding.addOns.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+//            @Override
+//            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+//                Toast.makeText(activity, binding.addOns.getSelectedItem().toString(), Toast.LENGTH_SHORT).show();
+//            }
+//
+//            @Override
+//            public void onNothingSelected(AdapterView<?> adapterView) {
+//
+//            }
 //        });
 
+
+
+
+
     }
 
-    public HashMap<Product, Integer> getSelectedProducts() {
+    public HashMap<String, AddOn> getSelectedProducts() {
         return selectedProducts;
     }
+
 
     @Override
     public int getItemCount() {
         return productList.size();
+    }
+
+    public ListPopupWindow showListPopUpWindow(Context context, ArrayAdapter<Item> arrayAdapter) {
+        ListPopupWindow popupWindow = new ListPopupWindow(context);
+        popupWindow.setAdapter(arrayAdapter);
+        return popupWindow;
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
@@ -112,8 +119,10 @@ public class ProductsRecyclerViewAdapter extends RecyclerView.Adapter<ProductsRe
             super(itemView);
             this.binding = ProductCardBinding.bind(itemView);
         }
+    }
 
-
+    public void clearSelectedProducts() {
+        this.selectedProducts.clear();
     }
 
 }

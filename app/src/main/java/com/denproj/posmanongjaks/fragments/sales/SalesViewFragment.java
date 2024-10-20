@@ -1,99 +1,161 @@
 package com.denproj.posmanongjaks.fragments.sales;
 
+import android.app.AlertDialog;
 import android.os.Bundle;
-
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProvider;
-import androidx.recyclerview.widget.LinearLayoutManager;
-
-import android.text.Editable;
-import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
-import com.denproj.posmanongjaks.R;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.denproj.posmanongjaks.adapter.AddOnRecyclerViewAdapter;
 import com.denproj.posmanongjaks.adapter.ProductsRecyclerViewAdapter;
 import com.denproj.posmanongjaks.databinding.FragmentSalesViewBinding;
-import com.denproj.posmanongjaks.dialog.AddProductFragment;
+import com.denproj.posmanongjaks.dialog.CheckOutDialogFragment;
+import com.denproj.posmanongjaks.dialog.LoadingDialog;
 import com.denproj.posmanongjaks.dialog.SelectProductFragment;
+import com.denproj.posmanongjaks.hilt.qualifier.OfflineImpl;
+import com.denproj.posmanongjaks.hilt.qualifier.OnlineImpl;
+import com.denproj.posmanongjaks.model.Item;
 import com.denproj.posmanongjaks.model.Product;
-import com.denproj.posmanongjaks.util.OnDataReceived;
-import com.denproj.posmanongjaks.util.OnDialogFinished;
+import com.denproj.posmanongjaks.repository.base.AddOnsRepository;
+import com.denproj.posmanongjaks.repository.base.ProductRepository;
+import com.denproj.posmanongjaks.repository.base.SaleRepository;
 import com.denproj.posmanongjaks.util.OnUpdateUI;
-import com.denproj.posmanongjaks.viewModel.BranchFragmentViewmodel;
+import com.denproj.posmanongjaks.viewModel.HomeActivityViewmodel;
+import com.denproj.posmanongjaks.viewModel.MainViewModel;
 import com.denproj.posmanongjaks.viewModel.SalesFragmentViewmodel;
 
 import java.util.List;
-import java.util.Random;
 
+import javax.inject.Inject;
+
+import dagger.hilt.android.AndroidEntryPoint;
+
+
+@AndroidEntryPoint
 
 public class SalesViewFragment extends Fragment {
-    SalesFragmentViewmodel viewmodel;
+
     ProductsRecyclerViewAdapter adapter;
     FragmentSalesViewBinding binding;
+    AddOnRecyclerViewAdapter addOnRecyclerViewAdapter;
+    HomeActivityViewmodel homeActivityViewmodel;
+    SalesFragmentViewmodel viewmodel;
+
+    MainViewModel mainViewModel;
+
+    LoadingDialog loadingDialog = new LoadingDialog();
+
+
+    @Inject
+    @OfflineImpl
+    ProductRepository productOfflineRepository;
+
+    @Inject
+    @OnlineImpl
+    ProductRepository productOnlineRepository;
+
+    @Inject
+    @OfflineImpl
+    AddOnsRepository addOnOfflineRepository;
+
+    @Inject
+    @OnlineImpl
+    AddOnsRepository addOnlineRepository;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
         binding = FragmentSalesViewBinding.inflate(inflater);
+
         this.viewmodel = new ViewModelProvider(requireActivity()).get(SalesFragmentViewmodel.class);
+        this.homeActivityViewmodel = new ViewModelProvider(requireActivity()).get(HomeActivityViewmodel.class);
+        this.mainViewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
 
-        binding.menuRcv.setLayoutManager(new LinearLayoutManager(requireContext()));
+        setupAdapters();
+        showDialog();
+
+        this.homeActivityViewmodel.getIsConnectionReachableLiveData().observe(getViewLifecycleOwner(), isConnected -> {
+            if (isConnected) {
+                this.viewmodel.setProductRepository(productOnlineRepository);
+                this.viewmodel.setAddOnsRepository(addOnlineRepository);
+            } else {
+                this.viewmodel.setProductRepository(productOfflineRepository);
+                this.viewmodel.setAddOnsRepository(addOnOfflineRepository);
+            }
+            getBranchId();
+        });
 
 
-        BranchFragmentViewmodel branchFragmentViewmodel = new ViewModelProvider(requireActivity()).get(BranchFragmentViewmodel.class);
+        return binding.getRoot();
+    }
 
-        branchFragmentViewmodel.branchIdLiveData.observe(getViewLifecycleOwner(), branchId -> {
+    public void getBranchId() {
+        homeActivityViewmodel.getBranchIdLiveData().observe(getViewLifecycleOwner(), branchId -> {
             if (branchId.isEmpty()) {
                 Toast.makeText(requireContext(), "No Branch Is Associated With this account.", Toast.LENGTH_LONG).show();
                 return;
             }
 
-            this.setUpPriceChangeListener(branchId);
-            this.loadProductsOnBranch(branchId);
+            viewmodel.loadAddOns(new OnUpdateUI<List<Item>>() {
+                @Override
+                public void onSuccess(List<Item> result) {
+                    setupProductRcv(branchId, result);
+                    loadProductsOnBranch();
 
-            binding.addProductToBranch.setOnClickListener(view -> {
-                SelectProductFragment dialog = new SelectProductFragment(branchId);
-                dialog.show(getChildFragmentManager(), "");
+                    addOnRecyclerViewAdapter = new AddOnRecyclerViewAdapter(result);
+                    binding.addOnList.setAdapter(addOnRecyclerViewAdapter);
+                    Toast.makeText(requireContext(), result + "", Toast.LENGTH_SHORT).show();
+                }
+
+                @Override
+                public void onFail(Exception e) {
+                    Log.e("SalesViewFragment", e.getMessage());
+                }
             });
 
-            binding.addNewProduct.setOnClickListener(view -> {
-                new AddProductFragment(new OnDialogFinished<Void>() {
-                    @Override
-                    public void onDialogFinishedSuccessfully(Void result) {
-
-                    }
-
-                    @Override
-                    public void onDialogFailed(@Nullable Exception e) {
-
-                    }
-                }, branchId).show(getChildFragmentManager(), "");
-
-            });
-            binding.sellModeToggle.setOnClickListener(view -> adapter.toggleSellMode(!adapter.getIsToggled()));
-
+            setupViews(branchId);
         });
-
-        binding.sellBtn.setOnClickListener(view -> {
-            Toast.makeText(requireContext(), "Sold", Toast.LENGTH_SHORT).show();
-            viewmodel.sell(adapter.getSelectedProducts());
-        });
-
-        return binding.getRoot();
     }
 
-    public void loadProductsOnBranch (String branchId) {
-        viewmodel.loadProductsOfBranch(branchId, new OnUpdateUI<List<Product>>() {
+    public void setupViews(String branchId) {
+        binding.addProductToBranch.setOnClickListener(view -> {
+            SelectProductFragment dialog = new SelectProductFragment(branchId);
+            dialog.show(getChildFragmentManager(), "");
+        });
+
+        binding.savedProducts.setOnClickListener(view -> {
+            new CheckOutDialogFragment(adapter.getSelectedProducts(), addOnRecyclerViewAdapter.getSelectedItems(), new CheckOutDialogFragment.OnSaleFinished() {
+                @Override
+                public void onSuccess(Double change) {
+                    Toast.makeText(requireContext(), "Sale Complete", Toast.LENGTH_SHORT).show();
+                    clearOrders();
+                    showSaleCompleteDialog(change);
+                }
+
+                @Override
+                public void onFail() {
+                    Toast.makeText(requireContext(), "Sale Failed", Toast.LENGTH_SHORT).show();
+                    clearOrders();
+                }
+            }).show(getChildFragmentManager(), "");
+        });
+    }
+
+    public void loadProductsOnBranch () {
+        viewmodel.loadProductsOfBranch(new OnUpdateUI<List<Product>>() {
             @Override
             public void onSuccess(List<Product> result) {
-                Toast.makeText(requireContext(), "Result length " + result.size(), Toast.LENGTH_SHORT).show();
                 adapter.refreshAdapter(result);
+                hideDialog();
             }
 
             @Override
@@ -103,9 +165,45 @@ public class SalesViewFragment extends Fragment {
         });
     }
 
-    public void setUpPriceChangeListener(String branchId) {
-        adapter = new ProductsRecyclerViewAdapter(branchId);
+    public void setupProductRcv(String branchId, List<Item> addOnsList) {
+        this.adapter = new ProductsRecyclerViewAdapter(addOnsList, branchId);
         binding.menuRcv.setAdapter(adapter);
+    }
+
+
+
+    public void setupAdapters() {
+        binding.menuRcv.setLayoutManager(new LinearLayoutManager(requireContext()));
+        LinearLayoutManager manager = new LinearLayoutManager(requireContext(), RecyclerView.HORIZONTAL, false);
+        binding.addOnList.setLayoutManager(manager);
+    }
+
+    public void showDialog() {
+        loadingDialog.show(getChildFragmentManager(), "");
+    }
+
+    public void hideDialog() {
+        loadingDialog.dismiss();
+    }
+
+    public void clearOrders () {
+        adapter.clearSelectedProducts();
+        addOnRecyclerViewAdapter.clearSelectedProducts();
+    }
+
+    public void showSaleCompleteDialog(Double change) {
+        AlertDialog.Builder saleCompleteDialogBuilder = new AlertDialog.Builder(requireContext());
+        saleCompleteDialogBuilder.setTitle("Change.");
+        saleCompleteDialogBuilder.setMessage(change.toString());
+
+        saleCompleteDialogBuilder.setPositiveButton("Ok", (dialogInterface1, i1) -> {
+            dialogInterface1.dismiss();
+        });
+
+        AlertDialog saleCompleteDialog = saleCompleteDialogBuilder.create();
+        saleCompleteDialog.show();
+
+
     }
 
 

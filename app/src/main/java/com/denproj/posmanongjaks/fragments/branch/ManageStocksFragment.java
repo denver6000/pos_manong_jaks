@@ -1,14 +1,12 @@
 package com.denproj.posmanongjaks.fragments.branch;
 
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.denproj.posmanongjaks.R;
+import androidx.fragment.app.Fragment;
+
 import com.denproj.posmanongjaks.databinding.FragmentManageStocksBinding;
 
 public class ManageStocksFragment extends Fragment {

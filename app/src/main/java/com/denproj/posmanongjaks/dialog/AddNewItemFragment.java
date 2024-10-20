@@ -3,41 +3,29 @@ package com.denproj.posmanongjaks.dialog;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Toast;
 
-import androidx.activity.result.ActivityResult;
-import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.PickVisualMediaRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.SimpleAdapter;
-import android.widget.Toast;
-
 import com.denproj.posmanongjaks.R;
 import com.denproj.posmanongjaks.databinding.FragmentAddNewItemBinding;
 import com.denproj.posmanongjaks.model.Item;
 import com.denproj.posmanongjaks.util.OnDataReceived;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
 
-import java.lang.reflect.Array;
 import java.util.Random;
 
 public class AddNewItemFragment extends DialogFragment {
@@ -74,38 +62,38 @@ public class AddNewItemFragment extends DialogFragment {
 
         setupSpinners();
         builder.setView(binding.getRoot());
-        builder.setPositiveButton("Save", (dialogInterface, i) -> {
-            String itemName = binding.getItemName();
-            int itemQuantity = Integer.valueOf(binding.getItemQuantity());
-            float itemPrice = Float.valueOf(binding.getItemPrice());
-            if ((itemName != null && !itemName.isEmpty()) && itemQuantity > 0 && itemPrice > 0 && selectedCategory != null && selectedUnit != null) {
-                saveImageToFirebaseStorage(new OnDataReceived<String>() {
-                    @Override
-                    public void onSuccess(String result) {
-                        int itemId = generateRandomId();
-                        Item item = new Item(result, itemId, itemName, selectedCategory, itemQuantity, selectedUnit, itemPrice);
-                        insertToGlobalItemList(item, new OnDataReceived<Void>() {
-                            @Override
-                            public void onSuccess(Void result) {
-                                Toast.makeText(requireContext(), "Item Inserted to Global List", Toast.LENGTH_SHORT).show();
-                            }
-
-                            @Override
-                            public void onFail(Exception e) {
-                                Toast.makeText(requireContext(), "Something Went Wrong", Toast.LENGTH_SHORT).show();
-                                Log.e("Exception", e.getMessage());
-
-                            }
-                        });
-                    }
-
-                    @Override
-                    public void onFail(Exception e) {
-                        Log.e("Error", e.getMessage());
-                    }
-                });
-            }
-        });
+//        builder.setPositiveButton("Save", (dialogInterface, i) -> {
+//            String itemName = binding.getItemName();
+//            int itemQuantity = Integer.valueOf(binding.getItemQuantity());
+//            Double itemPrice = Double.valueOf(binding.getItemPrice());
+//            if ((itemName != null && !itemName.isEmpty()) && itemQuantity > 0 && itemPrice > 0 && selectedCategory != null && selectedUnit != null) {
+//                saveImageToFirebaseStorage(new OnDataReceived<String>() {
+//                    @Override
+//                    public void onSuccess(String result) {
+//                        int itemId = generateRandomId();
+//                        Item item = new Item(result, itemId, itemName, selectedCategory, itemQuantity, selectedUnit, itemPrice);
+//                        insertToGlobalItemList(item, new OnDataReceived<Void>() {
+//                            @Override
+//                            public void onSuccess(Void result) {
+//                                Toast.makeText(requireContext(), "Item Inserted to Global List", Toast.LENGTH_SHORT).show();
+//                            }
+//
+//                            @Override
+//                            public void onFail(Exception e) {
+//                                Toast.makeText(requireContext(), "Something Went Wrong", Toast.LENGTH_SHORT).show();
+//                                Log.e("Exception", e.getMessage());
+//
+//                            }
+//                        });
+//                    }
+//
+//                    @Override
+//                    public void onFail(Exception e) {
+//                        Log.e("Error", e.getMessage());
+//                    }
+//                });
+//            }
+//        });
 
         builder.setNegativeButton("Cancel", (dialogInterface, i) -> {
             dismiss();
@@ -146,7 +134,11 @@ public class AddNewItemFragment extends DialogFragment {
         StorageReference storageReference = storage.getReference(path);
         storageReference.putFile(this.selectedUri).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
-                onDataReceived.onSuccess(path);
+                try {
+                    onDataReceived.onSuccess(path);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
             } else {
                 onDataReceived.onFail(task.getException());
             }

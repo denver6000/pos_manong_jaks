@@ -1,16 +1,10 @@
 package com.denproj.posmanongjaks.util;
 
 import android.content.Context;
-import android.net.Uri;
 import android.widget.ImageView;
 
-import androidx.annotation.NonNull;
-
 import com.bumptech.glide.Glide;
-import com.google.android.gms.tasks.OnCanceledListener;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.google.firebase.storage.FirebaseStorage;
 
 public class ImagePathBinder {
@@ -25,6 +19,7 @@ public class ImagePathBinder {
                     Glide
                             .with(context)
                             .load(uri)
+                            .diskCacheStrategy(DiskCacheStrategy.ALL)
                             .into(imageView);
                     onImageBound.onBound();
                 }).addOnCanceledListener(() -> {

@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout>
     <data>
-        <variable
-            name="viewModel"
-            type="com.denproj.posmanongjaks.viewModel.SalesFragmentViewmodel" />
+
 
 
     </data>
@@ -25,7 +23,6 @@
                 android:layout_height="wrap_content"
                 android:ems="10"
                 android:hint="Enter Product Name"
-                android:text="@={viewModel.productName}"
                 android:inputType="text" />
 
             <EditText
@@ -34,8 +31,7 @@
                 android:layout_height="wrap_content"
                 android:ems="10"
                 android:hint="Product Default Price"
-                android:inputType="numberDecimal"
-                android:text="@={viewModel.productPrice}"/>
+                android:inputType="numberDecimal"/>
 
             <ImageButton
                 android:id="@+id/productImagePreview"
