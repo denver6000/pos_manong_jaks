@@ -39,6 +39,7 @@ public class CheckOutRecyclerViewAdapter extends RecyclerView.Adapter<CheckOutRe
         String key = productArrayList.get(position);
         AddOn addOn = selectedItems.get(key);
         ItemCheckoutCardLayoutBinding binding = holder.binding;
+        binding.setProductName(addOn.getProduct().getProduct_name());
         if (addOn != null) {
 
             binding.incrementAmount.setOnClickListener(view -> {

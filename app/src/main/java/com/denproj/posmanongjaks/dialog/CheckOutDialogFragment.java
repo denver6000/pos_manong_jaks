@@ -67,7 +67,7 @@ public class CheckOutDialogFragment extends DialogFragment {
             Double total = binding.getTotalAmount();
             Float payedAmount = Float.parseFloat(binding.getPayedAmount());
 
-            if (selectedItems.isEmpty() || selectedAddOns.isEmpty()) {
+            if (selectedItems.isEmpty() && selectedAddOns.isEmpty()) {
                 Toast.makeText(requireContext(), "No Items in Checkout, Please Select Some", Toast.LENGTH_SHORT).show();
                 return;
             }

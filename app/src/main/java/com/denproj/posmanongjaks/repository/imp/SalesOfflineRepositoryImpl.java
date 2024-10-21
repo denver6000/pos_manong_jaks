@@ -56,12 +56,11 @@ public class SalesOfflineRepositoryImpl implements SaleRepository {
 
             @Override
             public void onFinished(Void result) {
-                onDataReceived.onSuccess(result);
             }
 
             @Override
             public void onUI(Void result) {
-
+                onDataReceived.onSuccess(result);
             }
 
             @Override

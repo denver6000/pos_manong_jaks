@@ -52,7 +52,7 @@ public class ProductsRecyclerViewAdapter extends RecyclerView.Adapter<ProductsRe
         binding.setSaleAmount(String.valueOf(0));
 
         binding.incrementProductAmount.setOnClickListener(view -> {
-            selectedProducts.putIfAbsent(product.getProduct_id() + "", new AddOn(1, product));
+            selectedProducts.putIfAbsent(product.getProduct_id() + "", new AddOn(0, product));
 //            if (item != null) {
 //                selectedProducts.putIfAbsent(product.getProduct_id() + "_w_" + item.getItem_id(), new AddOn(item, 1, product));
 //            } else {

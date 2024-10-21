@@ -1,6 +1,8 @@
 package com.denproj.posmanongjaks.viewModel;
 
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -138,7 +140,7 @@ public class ManageSalesViewmodel extends ViewModel {
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-
+                Log.d("Test", "Test");
             }
         });
     }
