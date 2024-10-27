@@ -20,7 +20,7 @@ public class AddOnOfflineRepositoryImpl implements AddOnsRepository {
     }
 
     @Override
-    public void getAddOnsRepository(OnDataReceived<List<Item>> onDataReceived) {
+    public void getAddOnsRepository(String branchId, OnDataReceived<List<Item>> onDataReceived) {
         AsyncRunner.runAsync(new AsyncRunner.Runner<List<Item>>() {
             @Override
             public List<Item> onBackground() throws Exception {

@@ -7,14 +7,15 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.denproj.posmanongjaks.R;
 import com.denproj.posmanongjaks.databinding.FragmentSettingsBinding;
 import com.denproj.posmanongjaks.viewModel.HomeActivityViewmodel;
 import com.denproj.posmanongjaks.viewModel.SettingsFragmentViewmodel;
 
+import dagger.hilt.android.AndroidEntryPoint;
+
+@AndroidEntryPoint
 public class SettingsFragment extends Fragment {
     HomeActivityViewmodel homeActivityViewmodel;
     SettingsFragmentViewmodel settingsFragmentViewmodel;
@@ -24,12 +25,13 @@ public class SettingsFragment extends Fragment {
         FragmentSettingsBinding binding = FragmentSettingsBinding.inflate(getLayoutInflater());
         this.homeActivityViewmodel = new ViewModelProvider(requireActivity()).get(HomeActivityViewmodel.class);
         this.settingsFragmentViewmodel = new ViewModelProvider(requireActivity()).get(SettingsFragmentViewmodel.class);
-        this.homeActivityViewmodel.getIsConnectionReachableLiveData().observe(getViewLifecycleOwner(), isConnectionReachable -> {
+        this.homeActivityViewmodel.sessionMutableLiveData.observe(getViewLifecycleOwner(), session -> {
             binding.changePassword.setOnClickListener(view -> {
-                settingsFragmentViewmodel.resetPassword(isConnectionReachable, new SettingsFragmentViewmodel.OnPasswordResetFinished() {
+                settingsFragmentViewmodel.resetPassword(session.isConnectionReachable(), new SettingsFragmentViewmodel.OnPasswordResetFinished() {
                     @Override
                     public void onSuccess() {
                         Toast.makeText(requireActivity(), "Password reset email sent on email address used for this account.", Toast.LENGTH_SHORT).show();
+                        requireActivity().finish();
                     }
 
                     @Override

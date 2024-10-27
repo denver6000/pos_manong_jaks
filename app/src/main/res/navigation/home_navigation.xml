@@ -47,5 +47,14 @@
     <fragment
         android:id="@+id/salesHistoryFragment"
         android:name="com.denproj.posmanongjaks.fragments.sales.SalesHistoryFragment"
-        android:label="SalesHistoryFragment" />
+        android:label="SalesHistoryFragment" >
+        <action
+            android:id="@+id/action_salesHistoryFragment_to_printActivity"
+            app:destination="@id/printActivity" />
+    </fragment>
+    <activity
+        android:id="@+id/printActivity"
+        android:name="com.denproj.posmanongjaks.PrintActivity"
+        android:label="activity_print"
+        tools:layout="@layout/activity_print" />
 </navigation>

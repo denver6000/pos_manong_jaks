@@ -1,10 +1,5 @@
 package com.denproj.posmanongjaks.viewModel;
 
-import android.content.Context;
-import android.net.ConnectivityManager;
-import android.net.Network;
-import android.net.NetworkInfo;
-
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
@@ -14,9 +9,11 @@ import com.denproj.posmanongjaks.model.Item;
 import com.denproj.posmanongjaks.model.Product;
 import com.denproj.posmanongjaks.repository.base.ItemRepository;
 import com.denproj.posmanongjaks.repository.base.ProductRepository;
-import com.denproj.posmanongjaks.util.OnDataReceived;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import javax.inject.Inject;
 
@@ -26,7 +23,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel;
 public class MainViewModel extends ViewModel {
 
     MutableLiveData<Boolean> booleanLiveData = new MutableLiveData<>();
-
     ItemRepository itemRepository;
     ItemRepository itemOfflineRepository;
     ProductRepository productRepository;
@@ -40,51 +36,60 @@ public class MainViewModel extends ViewModel {
         this.itemRepository = itemRepository;
     }
 
-//    public void loadStocksAndProductsInRoom(Context context) {
-//        ConnectivityManager connMgr =
-//                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-//        boolean isWifiConn = false;
-//        boolean isMobileConn = false;
-//
-//        for (Network network : connMgr.getAllNetworks()) {
-//            NetworkInfo networkInfo = connMgr.getNetworkInfo(network);
-//            if (networkInfo.getType() == ConnectivityManager.TYPE_WIFI) {
-//                isWifiConn |= networkInfo.isConnected();
-//            }
-//            if (networkInfo.getType() == ConnectivityManager.TYPE_MOBILE) {
-//                isMobileConn |= networkInfo.isConnected();
-//            }
-//        }
-//
-//        if (isWifiConn || isMobileConn) {
-//            sync();
-//        }
-//    }
+    public CompletableFuture<Void> sync(String branchId){
+        CompletableFuture<Void> syncCompletableFuture = new CompletableFuture<>();
 
-    public void sync(){
-        productRepository.fetchProductsFromBranch(new OnDataReceived<List<Product>>() {
+        clearLocalCache().thenAccept(new Consumer<Void>() {
             @Override
-            public void onSuccess(List<Product> result) {
-                result.forEach(product -> productOfflineRepository.insertProductToBranch(product, null));
-            }
-
-            @Override
-            public void onFail(Exception e) {
-
+            public void accept(Void unused) {
+                fetchItemsAndInsert(branchId).thenAccept(unused1 -> {
+                    fetchProductsAndInsert(branchId).thenAccept(syncCompletableFuture::complete);
+                });
             }
         });
 
-        itemRepository.fetchItemsFromBranch(new OnDataReceived<List<Item>>() {
-            @Override
-            public void onSuccess(List<Item> result){
-                itemOfflineRepository.insertItemsToBranch(result, null);
-            }
+        return syncCompletableFuture;
+    }
 
-            @Override
-            public void onFail(Exception e) {
+    private CompletableFuture<Void> fetchProductsAndInsert(String branchId) {
+        CompletableFuture<Void> completableFuture = new CompletableFuture<>();
 
-            }
+        productRepository
+                .fetchProductsFromBranch(branchId)
+                .thenAcceptAsync(products -> {
+                    productOfflineRepository
+                            .insertProduct(branchId, products)
+                            .thenAccept(completableFuture::complete);
+                }).exceptionally(throwable -> {
+                    completableFuture.completeExceptionally(throwable);
+                    return null;
+                });
+        return completableFuture;
+    }
+
+    private CompletableFuture<Void> fetchItemsAndInsert(String branchId) {
+        CompletableFuture<Void> completableFuture = new CompletableFuture<>();
+        itemRepository.fetchItemsFromBranch(branchId)
+                .thenAccept(items -> itemOfflineRepository
+                        .insertItem(items)
+                        .thenAccept(completableFuture::complete))
+                .exceptionally(throwable -> {
+                    completableFuture.completeExceptionally(throwable);
+                    return null;
+                });
+        return completableFuture;
+    }
+
+    private CompletableFuture<Void> clearLocalCache() {
+        CompletableFuture<Void> clearCacheLocalCacheFuture = new CompletableFuture<>();
+        productOfflineRepository.clearProductList().thenAccept(unused -> {
+            itemOfflineRepository.clearItems().thenAccept(clearCacheLocalCacheFuture::complete);
+        }).exceptionally(throwable -> {
+            clearCacheLocalCacheFuture.completeExceptionally(throwable);
+            return null;
         });
+
+        return clearCacheLocalCacheFuture;
     }
 
     public MutableLiveData<Boolean> getBooleanLiveData() {

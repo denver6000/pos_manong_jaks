@@ -2,24 +2,13 @@ package com.denproj.posmanongjaks.dialog;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.DialogInterface;
 import android.os.Bundle;
-import android.util.Log;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
-import androidx.lifecycle.ViewModelProvider;
-import androidx.recyclerview.widget.LinearLayoutManager;
 
-import com.denproj.posmanongjaks.adapter.ItemSelectionRecyclerViewAdapter;
 import com.denproj.posmanongjaks.databinding.FragmentSelectItemBinding;
-import com.denproj.posmanongjaks.model.Item;
-import com.denproj.posmanongjaks.util.OnUpdateUI;
-import com.denproj.posmanongjaks.viewModel.BranchFragmentViewmodel;
-
-import java.util.List;
 
 
 public class SelectItemFragment extends DialogFragment {

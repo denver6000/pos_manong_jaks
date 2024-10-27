@@ -1,17 +1,22 @@
 package com.denproj.posmanongjaks.repository.base;
 
 import com.denproj.posmanongjaks.model.Product;
-import com.denproj.posmanongjaks.model.Recipe;
-import com.denproj.posmanongjaks.util.OnDataReceived;
 
-import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
-public interface ProductRepository extends RecipeRepository, ImageRepository{
+public interface ProductRepository {
 
-    void fetchProductsFromGlobal(OnDataReceived<List<Product>> onDataReceived);
-    void fetchProductsFromBranch(OnDataReceived<List<Product>> onDataReceived);
-    void insertProductToBranch(Product product, OnDataReceived<Void> onDataReceived);
-    void insertProductToGlobalList(Product product, OnDataReceived<Void> onDataReceived) throws Exception;
-    void loadRecipeIntoBranchStocks(HashMap<String, Recipe> recipes, OnDataReceived<Void> onDataReceived) throws Exception;
+    CompletableFuture<List<Product>> fetchProductsFromBranch(String branchId);
+    CompletableFuture<Void> insertProduct(String branchId, List<Product> products);
+
+    default CompletableFuture<Void> clearProductList() {
+        return null;
+    }
+
+
+    default void func3() {
+
+    }
+
 }

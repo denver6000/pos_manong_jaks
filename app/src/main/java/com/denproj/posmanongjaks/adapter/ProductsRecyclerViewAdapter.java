@@ -13,7 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.denproj.posmanongjaks.R;
 import com.denproj.posmanongjaks.databinding.ProductCardBinding;
-import com.denproj.posmanongjaks.model.AddOn;
+import com.denproj.posmanongjaks.model.ProductWrapper;
 import com.denproj.posmanongjaks.model.Item;
 import com.denproj.posmanongjaks.model.Product;
 import com.denproj.posmanongjaks.util.ImagePathBinder;
@@ -25,7 +25,7 @@ import java.util.List;
 public class ProductsRecyclerViewAdapter extends RecyclerView.Adapter<ProductsRecyclerViewAdapter.ViewHolder> {
 
     List<Product> productList = new ArrayList<>();
-    private HashMap<String, AddOn> selectedProducts = new HashMap<>();
+    private HashMap<Long, ProductWrapper> selectedProducts = new HashMap<>();
 
     List<Item> addOnsList;
     String branchId;
@@ -49,15 +49,10 @@ public class ProductsRecyclerViewAdapter extends RecyclerView.Adapter<ProductsRe
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Product product = productList.get(position);
         ProductCardBinding binding = holder.binding;
-        binding.setSaleAmount(String.valueOf(0));
+        binding.setSaleAmount(String.valueOf(1));
 
         binding.incrementProductAmount.setOnClickListener(view -> {
-            selectedProducts.putIfAbsent(product.getProduct_id() + "", new AddOn(0, product));
-//            if (item != null) {
-//                selectedProducts.putIfAbsent(product.getProduct_id() + "_w_" + item.getItem_id(), new AddOn(item, 1, product));
-//            } else {
-//
-//            }
+            selectedProducts.putIfAbsent(product.getProduct_id(), new ProductWrapper(0, product));
         });
 
         binding.setProductName(product.getProduct_name());
@@ -73,31 +68,9 @@ public class ProductsRecyclerViewAdapter extends RecyclerView.Adapter<ProductsRe
                 Log.e("ProductsRCV", e.getMessage());
             }
         });
-
-//        ArrayAdapter<Recipe> adapter = new ArrayAdapter<>(activity, android.R.layout.simple_list_item_1, recipeList);
-//        binding.recipeListView.setAdapter(adapter);
-//
-//        ArrayAdapter<Item> arrayAdapter = new ArrayAdapter<>(binding.getRoot().getContext(), android.R.layout.simple_list_item_1, this.addOnsList);
-//        binding.addOns.setAdapter(arrayAdapter);
-//        binding.addOns.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-//            @Override
-//            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-//                Toast.makeText(activity, binding.addOns.getSelectedItem().toString(), Toast.LENGTH_SHORT).show();
-//            }
-//
-//            @Override
-//            public void onNothingSelected(AdapterView<?> adapterView) {
-//
-//            }
-//        });
-
-
-
-
-
     }
 
-    public HashMap<String, AddOn> getSelectedProducts() {
+    public HashMap<Long, ProductWrapper> getSelectedProducts() {
         return selectedProducts;
     }
 

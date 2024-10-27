@@ -1,28 +1,27 @@
 package com.denproj.posmanongjaks.hilt.module;
 
-import android.content.Context;
-import android.net.ConnectivityManager;
-import android.net.Network;
-import android.net.NetworkInfo;
-
-import com.denproj.posmanongjaks.hilt.qualifier.DynamicImpl;
 import com.denproj.posmanongjaks.hilt.qualifier.OfflineImpl;
 import com.denproj.posmanongjaks.hilt.qualifier.OnlineImpl;
 import com.denproj.posmanongjaks.repository.base.AddOnsRepository;
+import com.denproj.posmanongjaks.repository.base.BranchRepository;
 import com.denproj.posmanongjaks.repository.base.ItemRepository;
 import com.denproj.posmanongjaks.repository.base.LoginRepository;
 import com.denproj.posmanongjaks.repository.base.ProductRepository;
 import com.denproj.posmanongjaks.repository.base.RecipeRepository;
+import com.denproj.posmanongjaks.repository.base.RoleRepository;
 import com.denproj.posmanongjaks.repository.base.SaleRepository;
 import com.denproj.posmanongjaks.repository.base.SavedLoginRepository;
 import com.denproj.posmanongjaks.repository.imp.AddOnOfflineRepositoryImpl;
 import com.denproj.posmanongjaks.repository.imp.AddOnsRepositoryImpl;
+import com.denproj.posmanongjaks.repository.imp.BranchOnlineRepositoryImpl;
 import com.denproj.posmanongjaks.repository.imp.ItemOfflineRepository;
 import com.denproj.posmanongjaks.repository.imp.ItemRepositoryImpl;
 import com.denproj.posmanongjaks.repository.imp.LoginRepositoryImpl;
 import com.denproj.posmanongjaks.repository.imp.ProductOfflineRepositoryImpl;
 import com.denproj.posmanongjaks.repository.imp.ProductRepositoryImpl;
 import com.denproj.posmanongjaks.repository.imp.RecipeRepositoryImpl;
+import com.denproj.posmanongjaks.repository.imp.RoleOfflineRepositoryImpl;
+import com.denproj.posmanongjaks.repository.imp.RoleOnlineRepository;
 import com.denproj.posmanongjaks.repository.imp.SaleRepositoryImpl;
 import com.denproj.posmanongjaks.repository.imp.SalesOfflineRepositoryImpl;
 import com.denproj.posmanongjaks.repository.imp.SavedLoginRepositoryImpl;
@@ -31,7 +30,6 @@ import com.denproj.posmanongjaks.room.AppDatabase;
 import dagger.Module;
 import dagger.Provides;
 import dagger.hilt.InstallIn;
-import dagger.hilt.android.qualifiers.ApplicationContext;
 import dagger.hilt.components.SingletonComponent;
 
 @Module
@@ -87,67 +85,19 @@ public class RepositoryModule {
     ItemRepository provideItemOfflineRepository(AppDatabase appDatabase) {
         return new ItemOfflineRepository(appDatabase.getItemsDao());
     }
-    // ----
-
-//    @Provides
-//    boolean provideConnectionState(@ApplicationContext Context context) {
-//        ConnectivityManager connMgr =
-//                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-//        boolean isWifiConn = false;
-//        boolean isMobileConn = false;
-//
-//        for (Network network : connMgr.getAllNetworks()) {
-//            NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
-//            if (networkInfo.getType() == ConnectivityManager.TYPE_WIFI) {
-//                isWifiConn |= networkInfo.isConnected();
-//            }
-//            if (networkInfo.getType() == ConnectivityManager.TYPE_MOBILE) {
-//                isMobileConn |= networkInfo.isConnected();
-//            }
-//        }
-//
-//        return isWifiConn || isMobileConn;
-////
-////        return networkInfo != null && networkInfo.isConnected();
-//    }
-
-//    @Provides
-//    @DynamicImpl
-//    ItemRepository providesItemDynamicRepository(boolean connectionState, AppDatabase appDatabase) {
-//        if (!connectionState) {
-//            return new ItemOfflineRepository(appDatabase.getItemsDao());
-//        } else {
-//            return new ItemRepositoryImpl();
-//        }
-//    }
-//
-//    @Provides
-//    @DynamicImpl
-//    ProductRepository providesProductDynamicRepository(boolean connectionState, AppDatabase appDatabase) {
-//        if (!connectionState) {
-//            return new ProductOfflineRepositoryImpl(appDatabase.getProductsDao());
-//        } else {
-//            return new ProductRepositoryImpl();
-//        }
-//    }
-
 
     // Login Repos
-
     @Provides
-    LoginRepository provideLoginRepository() {
-        return new LoginRepositoryImpl();
+    LoginRepository provideLoginRepository(@OnlineImpl RoleRepository roleRepository, @OnlineImpl BranchRepository branchRepository) {
+        return new LoginRepositoryImpl(roleRepository, branchRepository);
     }
 
     @Provides
     SavedLoginRepository provideSavedLoginRepository (AppDatabase appDatabase) {
-        return new SavedLoginRepositoryImpl(appDatabase.getUserDao());
+        return new SavedLoginRepositoryImpl(appDatabase.getUserInfoDao());
     }
 
     // Sale Repository
-
-
-
     @Provides
     @OnlineImpl
     SaleRepository provideOnlineSaleRepository () {
@@ -159,5 +109,32 @@ public class RepositoryModule {
     SaleRepository provideOOfflineSaleRepository (AppDatabase appDatabase) {
         return new SalesOfflineRepositoryImpl(appDatabase.getSalesDao());
     }
+
+    //Branch Repository
+    @Provides
+    @OnlineImpl
+    BranchRepository provideBranchOnlineRepository() {
+        return new BranchOnlineRepositoryImpl();
+    }
+
+    @Provides
+    @OfflineImpl
+    BranchRepository provideBranchOfflineRepository() {
+        return new BranchOnlineRepositoryImpl();
+    }
+
+    //Role Repo
+    @Provides
+    @OnlineImpl
+    RoleRepository provideRoleRepository() {
+        return new RoleOnlineRepository();
+    }
+
+    @Provides
+    @OfflineImpl
+    RoleRepository provideOfflineRoleRepository() {
+        return new RoleOfflineRepositoryImpl();
+    }
+
 
 }

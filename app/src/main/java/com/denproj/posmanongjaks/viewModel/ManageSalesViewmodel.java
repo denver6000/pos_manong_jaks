@@ -13,7 +13,6 @@ import com.denproj.posmanongjaks.model.Sale;
 import com.denproj.posmanongjaks.model.SaleItem;
 import com.denproj.posmanongjaks.model.SaleProduct;
 import com.denproj.posmanongjaks.repository.base.SaleRepository;
-import com.denproj.posmanongjaks.session.SessionManager;
 import com.denproj.posmanongjaks.util.AsyncRunner;
 import com.denproj.posmanongjaks.util.OnDataReceived;
 import com.google.firebase.database.DataSnapshot;
@@ -28,6 +27,7 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.CompletableFuture;
 
 import javax.inject.Inject;
 
@@ -44,12 +44,11 @@ public class ManageSalesViewmodel extends ViewModel {
         this.saleRepository = saleRepository;
     }
 
-    public LiveData<List<Sale>> fetchSales() {
-        return saleRepository.getAllRecordedSales();
+    public CompletableFuture<List<Sale>> fetchSales(String branchId) {
+        return saleRepository.getAllRecordedSalesOnBranch(branchId);
     }
 
-    public void synchronizeSales(OnDataReceived<Void> onDataReceived) {
-        String branchId = SessionManager.getInstance().getBranchId();
+    public void synchronizeSales(String branchId, OnDataReceived<Void> onDataReceived) {
         List<Sale> sales = salesLiveData.getValue();
         if (sales == null || sales.isEmpty()) {
             onDataReceived.onFail(new Exception("No Sales Record"));
@@ -117,13 +116,17 @@ public class ManageSalesViewmodel extends ViewModel {
         ref.child("sold_items").setValue(saleItems);
     }
 
-    private void getRecipe(String branchId, Integer productId) {
+    private void getRecipe(String branchId, Long productId) {
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         database.getReference("products_on_branches/"+branchId+"/"+productId+"/recipes").get().addOnSuccessListener(dataSnapshot -> {
             for (DataSnapshot child : dataSnapshot.getChildren()) {
-                String itemKey = child.getKey();
-                Integer amount = child.child("amount").getValue(Integer.class);
-                reduceStock(Integer.valueOf(itemKey), branchId, amount);
+                if (child.exists()) {
+                    String itemKey = child.getKey();
+                    Integer amount = child.child("amount").getValue(Integer.class);
+                    if (itemKey != null && amount != null) {
+                        reduceStock(Integer.parseInt(itemKey), branchId, amount);
+                    }
+                }
             }
         });
     }
@@ -134,8 +137,12 @@ public class ManageSalesViewmodel extends ViewModel {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 DataSnapshot quantityRef = snapshot.child("item_quantity");
-                Integer quantity = quantityRef.getValue(Integer.class);
-                quantityRef.getRef().setValue(quantity - amountToReduce);
+                if (quantityRef.exists()) {
+                    Integer quantity = quantityRef.getValue(Integer.class);
+                    if (quantity != null) {
+                        quantityRef.getRef().setValue(quantity - amountToReduce);
+                    }
+                }
             }
 
             @Override

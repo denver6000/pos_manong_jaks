@@ -47,11 +47,13 @@ dependencies {
 
     val room_version = "2.6.1"
 
+
+
     implementation("androidx.room:room-runtime:$room_version")
     annotationProcessor("androidx.room:room-compiler:$room_version")
 
     implementation("com.github.danielfelgar:draw-receipt:0.1.3")
-
+    implementation("com.github.DantSu:ESCPOS-ThermalPrinter-Android:3.3.0")
     implementation("com.github.bumptech.glide:glide:4.16.0")
     implementation(libs.room.runtime)
     implementation(libs.navigation.fragment)

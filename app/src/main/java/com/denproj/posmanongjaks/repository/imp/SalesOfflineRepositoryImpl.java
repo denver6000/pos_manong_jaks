@@ -1,22 +1,23 @@
 package com.denproj.posmanongjaks.repository.imp;
 
 import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
 
-import com.denproj.posmanongjaks.model.AddOn;
+import com.denproj.posmanongjaks.model.ProductWrapper;
+import com.denproj.posmanongjaks.model.CompleteSaleInfo;
 import com.denproj.posmanongjaks.model.Item;
 import com.denproj.posmanongjaks.model.Sale;
 import com.denproj.posmanongjaks.model.SaleItem;
 import com.denproj.posmanongjaks.model.SaleProduct;
 import com.denproj.posmanongjaks.repository.base.SaleRepository;
 import com.denproj.posmanongjaks.room.dao.SalesDao;
-import com.denproj.posmanongjaks.room.view.SalesWithProduct;
 import com.denproj.posmanongjaks.util.AsyncRunner;
 import com.denproj.posmanongjaks.util.EfficientRandomStringGenerator;
 import com.denproj.posmanongjaks.util.OnDataReceived;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public class SalesOfflineRepositoryImpl implements SaleRepository {
 
@@ -27,7 +28,7 @@ public class SalesOfflineRepositoryImpl implements SaleRepository {
     }
 
     @Override
-    public void insertSaleRecord(String branchId, HashMap<String, AddOn> selectedProductToSell, HashMap<Item, Integer> addOns, int year, int month, int day, Double total, Double amountToBePaid, OnDataReceived<Void> onDataReceived) {
+    public void insertSaleRecord(String branchId, HashMap<Long, ProductWrapper> selectedProductToSell, HashMap<Item, Integer> addOns, int year, int month, int day, Double total, Double amountToBePaid, OnDataReceived<CompleteSaleInfo> onDataReceived) {
         Sale saleRecord = new Sale();
         saleRecord.setSaleId(EfficientRandomStringGenerator.generateRandomTenDigitString());
         Double change = amountToBePaid - total;
@@ -38,28 +39,28 @@ public class SalesOfflineRepositoryImpl implements SaleRepository {
         saleRecord.setYear(year);
         saleRecord.setPaidAmount(amountToBePaid);
         saleRecord.setBranchId(branchId);
-        AsyncRunner.runAsync(new AsyncRunner.Runner<Void>() {
+        AsyncRunner.runAsync(new AsyncRunner.Runner<CompleteSaleInfo>() {
             @Override
-            public Void onBackground() throws Exception {
-                salesDao.insertSale(saleRecord);
-
+            public CompleteSaleInfo onBackground() throws Exception {
+                List<SaleProduct> saleProducts = new ArrayList<>();
+                List<SaleItem> saleItems = new ArrayList<>();
                 selectedProductToSell.forEach((s, addOn) -> {
-                    salesDao.insertSaleProduct(new SaleProduct(addOn.getProduct().getProduct_id(), addOn.getAddOnAmount(), saleRecord.getSaleId(), addOn.getProduct().getProduct_name()));
+                    SaleProduct saleProduct = new SaleProduct(addOn.getProduct().getProduct_id(), addOn.getAddOnAmount(), saleRecord.getSaleId(), addOn.getProduct().getProduct_name());
+                    saleProducts.add(saleProduct);
                 });
-
                 addOns.forEach((item, integer) -> {
-                    salesDao.insertSaleItem(new SaleItem(item.getItem_id(), saleRecord.getSaleId(), integer, item.getItem_name()));
+                    SaleItem saleItem = new SaleItem(item.getItem_id(), saleRecord.getSaleId(), integer, item.getItem_name());
+                    saleItems.add(saleItem);
                 });
-
-                return null;
+                return new CompleteSaleInfo(saleRecord, saleItems, saleProducts);
             }
 
             @Override
-            public void onFinished(Void result) {
+            public void onFinished(CompleteSaleInfo result) {
             }
 
             @Override
-            public void onUI(Void result) {
+            public void onUI(CompleteSaleInfo result) {
                 onDataReceived.onSuccess(result);
             }
 
@@ -68,16 +69,6 @@ public class SalesOfflineRepositoryImpl implements SaleRepository {
                 onDataReceived.onFail(e);
             }
         });
-    }
-
-    @Override
-    public void getSaleRecord(int productId, OnDataReceived<Sale> sale) {
-
-    }
-
-    @Override
-    public List<SalesWithProduct> getAllSalesRecord() {
-        return (List<SalesWithProduct>) new MutableLiveData<>();
     }
 
     @Override
@@ -91,8 +82,8 @@ public class SalesOfflineRepositoryImpl implements SaleRepository {
     }
 
     @Override
-    public LiveData<List<Sale>> getAllRecordedSales() {
-        return salesDao.getAllRecordedSalesAsync();
+    public CompletableFuture<List<Sale>> getAllRecordedSalesOnBranch(String branchId) {
+        return CompletableFuture.supplyAsync(() -> salesDao.getAllRecordedSalesAsync(branchId));
     }
 
     @Override

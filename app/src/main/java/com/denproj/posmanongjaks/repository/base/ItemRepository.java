@@ -5,11 +5,17 @@ import com.denproj.posmanongjaks.util.OnDataReceived;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
-public interface ItemRepository extends ImageRepository, RecipeRepository {
+import kotlin.NotImplementedError;
+
+public interface ItemRepository extends RecipeRepository {
 
     void fetchItemsFromGlobal(OnDataReceived<List<Item>> onDataReceived);
-    void fetchItemsFromBranch(OnDataReceived<List<Item>> onDataReceived);
-    void saveSelectionToBranchList(HashMap<String, Item> selectedItemsMap, OnDataReceived<Void> onComplete);
-    void insertItemsToBranch(List<Item> items, OnDataReceived<Void> onDataReceived);
+    CompletableFuture<List<Item>> fetchItemsFromBranch(String branchId);
+    void saveSelectionToBranchList(String branchId, HashMap<String, Item> selectedItemsMap, OnDataReceived<Void> onComplete);
+    CompletableFuture<Void> insertItem(List<Item> items);
+    default CompletableFuture<Void> clearItems() {
+        throw new NotImplementedError();
+    }
 }

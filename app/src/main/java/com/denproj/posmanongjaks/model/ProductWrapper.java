@@ -2,25 +2,15 @@ package com.denproj.posmanongjaks.model;
 
 import androidx.annotation.NonNull;
 
-public class AddOn {
-//    private Item addOnItem;
+public class ProductWrapper {
     private Integer addOnAmount;
 
     private Product product;
 
-    public AddOn(Integer addOnAmount, Product product) {
-//        this.addOnItem = item;
+    public ProductWrapper(Integer addOnAmount, Product product) {
         this.addOnAmount = addOnAmount;
         this.product = product;
     }
-
-//    public Item getAddOnItem() {
-//        return addOnItem;
-//    }
-//
-//    public void setAddOnItem(Item addOnItem) {
-//        this.addOnItem = addOnItem;
-//    }
 
     public Integer getAddOnAmount() {
         return addOnAmount;

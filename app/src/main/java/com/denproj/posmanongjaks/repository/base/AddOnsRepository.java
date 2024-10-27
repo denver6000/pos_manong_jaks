@@ -6,5 +6,5 @@ import com.denproj.posmanongjaks.util.OnDataReceived;
 import java.util.List;
 
 public interface AddOnsRepository {
-    void getAddOnsRepository(OnDataReceived<List<Item>> onDataReceived);
+    void getAddOnsRepository(String branchId, OnDataReceived<List<Item>> onDataReceived);
 }

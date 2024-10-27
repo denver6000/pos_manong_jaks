@@ -31,7 +31,6 @@ public class AddOnCheckOutRecyclerViewAdapter extends RecyclerView.Adapter<AddOn
     public AddOnCheckOutRecyclerViewAdapter(HashMap<Item, Integer> selectedAddOns, CheckOutDialogFragment.OnTotalAmountChanged totalAmountChanged) {
         this.selectedAddOns = selectedAddOns;
         this.totalAmountChanged = totalAmountChanged;
-
         this.items = new ArrayList<>(selectedAddOns.keySet());
     }
 
@@ -49,6 +48,8 @@ public class AddOnCheckOutRecyclerViewAdapter extends RecyclerView.Adapter<AddOn
 
         Integer initialStock = selectedAddOns.get(item);
         binding.setAddOnAmount(initialStock);
+        totalAmountChanged.onChanged(item.getItem_price() * binding.getAddOnAmount());
+
         binding.incrementAmount.setOnClickListener(view -> {
             int amount = binding.getAddOnAmount() + 1;
             selectedAddOns.put(item, amount);
@@ -58,14 +59,16 @@ public class AddOnCheckOutRecyclerViewAdapter extends RecyclerView.Adapter<AddOn
 
         binding.decrementAmount.setOnClickListener(view -> {
             int amount = binding.getAddOnAmount();
-            if (amount == 0) {
-                selectedAddOns.put(item, amount);
-            } else {
+            if (amount == 1) {
+                selectedAddOns.remove(item);
+                items.remove(holder.getAdapterPosition());
+                notifyItemRemoved(holder.getAdapterPosition());
+            } else if (amount > 1) {
                 amount = amount - 1;
                 selectedAddOns.put(item, amount);
             }
             binding.setAddOnAmount(amount);
-            totalAmountChanged.onChanged(0d);
+            totalAmountChanged.onChanged(getTotal());
         });
     }
 
@@ -82,7 +85,7 @@ public class AddOnCheckOutRecyclerViewAdapter extends RecyclerView.Adapter<AddOn
 
     @Override
     public int getItemCount() {
-        return selectedAddOns.size();
+        return items.size();
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {

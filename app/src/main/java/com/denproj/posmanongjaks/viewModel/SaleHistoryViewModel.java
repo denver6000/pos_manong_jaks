@@ -8,6 +8,7 @@ import com.denproj.posmanongjaks.model.Sale;
 import com.denproj.posmanongjaks.repository.base.SaleRepository;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import javax.inject.Inject;
 
@@ -23,8 +24,8 @@ public class SaleHistoryViewModel extends ViewModel {
         this.saleRepository = saleRepository;
     }
 
-    public LiveData<List<Sale>> getAllSalesRecord() {
-        return saleRepository.getAllRecordedSales();
+    public CompletableFuture<List<Sale>> getAllSalesRecord(String branchId) {
+        return saleRepository.getAllRecordedSalesOnBranch(branchId);
     }
 
 

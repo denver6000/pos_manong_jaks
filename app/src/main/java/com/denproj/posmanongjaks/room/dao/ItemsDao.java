@@ -13,9 +13,10 @@ public interface ItemsDao {
 
     @Insert
     void insertItems(Item... item);
-
-
     @Query("SELECT * FROM Item")
     List<Item> getAllItems();
+
+    @Query("DELETE FROM Item")
+    void clearItems();
 
 }

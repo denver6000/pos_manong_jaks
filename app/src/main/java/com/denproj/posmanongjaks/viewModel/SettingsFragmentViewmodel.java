@@ -3,20 +3,23 @@ package com.denproj.posmanongjaks.viewModel;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.ViewModel;
 
-import com.denproj.posmanongjaks.repository.base.SavedLoginRepository;
 import com.denproj.posmanongjaks.room.dao.UserDao;
 import com.denproj.posmanongjaks.util.AsyncRunner;
 import com.denproj.posmanongjaks.util.OnDataReceived;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
+import javax.inject.Inject;
+
+import dagger.hilt.android.lifecycle.HiltViewModel;
+
+@HiltViewModel
 public class SettingsFragmentViewmodel extends ViewModel {
 
     UserDao userDao;
     FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
 
+    @Inject
     public SettingsFragmentViewmodel(UserDao userDao) {
         this.userDao = userDao;
     }
@@ -28,11 +31,17 @@ public class SettingsFragmentViewmodel extends ViewModel {
             String email = firebaseUser.getEmail();
             firebaseAuth.sendPasswordResetEmail(email).addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
+                    firebaseAuth.signOut();
+                }
+            });
+            firebaseAuth.addAuthStateListener(firebaseAuth -> {
+                if (firebaseAuth.getCurrentUser() == null) {
                     onPasswordResetFinished.onSuccess();
                 }
             });
             return;
         }
+
         onPasswordResetFinished.onFail();
     }
 

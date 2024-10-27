@@ -1,21 +1,50 @@
 package com.denproj.posmanongjaks.model;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
+import androidx.annotation.NonNull;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
+import com.google.firebase.firestore.IgnoreExtraProperties;
+
 @Entity
-public class User {
+@IgnoreExtraProperties
+public class User implements Parcelable {
     private String branch_id;
     private String email;
     private String role;
     private String branch_location;
     private String username;
     @PrimaryKey
+    @NonNull
     private String user_id;
 
     public User() {
     }
 
+
+    protected User(Parcel in) {
+        branch_id = in.readString();
+        email = in.readString();
+        role = in.readString();
+        branch_location = in.readString();
+        username = in.readString();
+        user_id = in.readString();
+    }
+
+    public static final Creator<User> CREATOR = new Creator<User>() {
+        @Override
+        public User createFromParcel(Parcel in) {
+            return new User(in);
+        }
+
+        @Override
+        public User[] newArray(int size) {
+            return new User[size];
+        }
+    };
 
     public String getBranch_id() {
         return branch_id;
@@ -71,5 +100,20 @@ public class User {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(@NonNull Parcel parcel, int i) {
+        parcel.writeString(branch_id);
+        parcel.writeString(email);
+        parcel.writeString(role);
+        parcel.writeString(branch_location);
+        parcel.writeString(username);
+        parcel.writeString(user_id);
     }
 }

@@ -1,12 +1,9 @@
 package com.denproj.posmanongjaks.repository.imp;
 
-import android.util.Log;
-
 import androidx.annotation.NonNull;
 
 import com.denproj.posmanongjaks.model.Item;
 import com.denproj.posmanongjaks.repository.base.ItemRepository;
-import com.denproj.posmanongjaks.session.SessionManager;
 import com.denproj.posmanongjaks.util.OnDataReceived;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -19,6 +16,10 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
+
+import kotlin.NotImplementedError;
 
 public class ItemRepositoryImpl implements ItemRepository {
     public static final String GLOBAL_PATH_TO_ITEM_LIST = "items_list";
@@ -37,9 +38,10 @@ public class ItemRepositoryImpl implements ItemRepository {
     }
 
     @Override
-    public void fetchItemsFromBranch(OnDataReceived<List<Item>> onDataReceived) {
+    public CompletableFuture<List<Item>> fetchItemsFromBranch(String branchId) {
 
-        String branchId = SessionManager.getInstance().getBranchId();
+        CompletableFuture<List<Item>> listCompletableFuture = new CompletableFuture<>();
+
         FirebaseDatabase realtimeDatabase = FirebaseDatabase.getInstance();
         realtimeDatabase.getReference("/items_on_branches/"+branchId).addValueEventListener(new ValueEventListener() {
             @Override
@@ -49,21 +51,22 @@ public class ItemRepositoryImpl implements ItemRepository {
                     Item item = dataSnapshot.getValue(Item.class);
                     items.add(item);
                 });
-                onDataReceived.onSuccess(items);
+                listCompletableFuture.complete(items);
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                Log.d("Error", error.getMessage());
+                listCompletableFuture.completeExceptionally(error.toException());
             }
         });
+        return listCompletableFuture;
     }
 
     @Override
-    public void saveSelectionToBranchList(HashMap<String, Item> selectedItemsMap, OnDataReceived<Void> onComplete) {
+    public void saveSelectionToBranchList(String branchId, HashMap<String, Item> selectedItemsMap, OnDataReceived<Void> onComplete) {
 
 
-        String branchId = SessionManager.getInstance().getBranchId();
+
         FirebaseDatabase realtimeDatabase = FirebaseDatabase.getInstance();
         DatabaseReference itemsOnBranchesRef = realtimeDatabase.getReference("items_on_branches");
         DatabaseReference branchChild = itemsOnBranchesRef.child(branchId);
@@ -78,14 +81,8 @@ public class ItemRepositoryImpl implements ItemRepository {
     }
 
     @Override
-    public void insertItemsToBranch(List<Item> items, OnDataReceived<Void> onDataReceived) {
-
-    }
-
-
-    @Override
-    public void getImage(String path, OnDataReceived<String> onDataReceived) throws Exception {
-
+    public CompletableFuture<Void> insertItem(List<Item> items) {
+        throw new NotImplementedError();
     }
 
     @Override
@@ -98,4 +95,6 @@ public class ItemRepositoryImpl implements ItemRepository {
             globalItemListRef.child(itemId).setValue(item);
         });
     }
+
+
 }

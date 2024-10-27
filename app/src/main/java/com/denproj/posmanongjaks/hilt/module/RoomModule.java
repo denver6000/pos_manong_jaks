@@ -8,6 +8,7 @@ import com.denproj.posmanongjaks.room.dao.ItemsDao;
 import com.denproj.posmanongjaks.room.dao.ProductsDao;
 import com.denproj.posmanongjaks.room.dao.SalesDao;
 import com.denproj.posmanongjaks.room.dao.UserDao;
+import com.denproj.posmanongjaks.room.dao.UserInfoDao;
 
 import dagger.Module;
 import dagger.Provides;
@@ -40,6 +41,11 @@ public class RoomModule {
     @Provides
     UserDao provideUserDao(AppDatabase appDatabase) {
         return appDatabase.getUserDao();
+    }
+
+    @Provides
+    UserInfoDao provideUserInfoDao(AppDatabase appDatabase) {
+        return appDatabase.getUserInfoDao();
     }
 
 

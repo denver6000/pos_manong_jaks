@@ -4,33 +4,34 @@ import androidx.annotation.NonNull;
 
 import com.denproj.posmanongjaks.model.Item;
 import com.denproj.posmanongjaks.repository.base.AddOnsRepository;
-import com.denproj.posmanongjaks.session.SessionManager;
 import com.denproj.posmanongjaks.util.OnDataReceived;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 
 public class AddOnsRepositoryImpl implements AddOnsRepository {
     public static String BRANCH_ITEMS_LIST = "items_on_branches";
     @Override
-    public void getAddOnsRepository(OnDataReceived<List<Item>> onDataReceived) {
+    public void getAddOnsRepository(String branchId, OnDataReceived<List<Item>> onDataReceived) {
 
         FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
-        String branchId = SessionManager.getInstance().getBranchId();
         DatabaseReference databaseReference = firebaseDatabase.getReference(BRANCH_ITEMS_LIST + "/" + branchId);
         databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 List<Item> addOns = new ArrayList<>();
                 for (DataSnapshot child : snapshot.getChildren()) {
-                    addOns.add(child.getValue(Item.class));
+                    Item item = child.getValue(Item.class);
+                    if (item != null) {
+                        if (item.isAds_on()) {
+                            addOns.add(item);
+                        }
+                    }
                 }
                 onDataReceived.onSuccess(addOns);
             }

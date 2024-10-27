@@ -14,7 +14,8 @@ import java.util.HashMap;
 public class Product {
 
     @PrimaryKey
-    private Integer product_id;
+    @NonNull
+    private Long product_id;
     private String product_name;
     private String product_image_path;
     private float product_price;
@@ -29,13 +30,23 @@ public class Product {
         this.recipes = recipes;
     }
     public Product() {
+
     }
 
-    public Integer getProduct_id() {
+    public Product(@NonNull Long product_id, String product_name, String product_image_path, float product_price, String product_category, HashMap<String, Recipe> recipes) {
+        this.product_id = product_id;
+        this.product_name = product_name;
+        this.product_image_path = product_image_path;
+        this.product_price = product_price;
+        this.product_category = product_category;
+        this.recipes = recipes;
+    }
+
+    public Long getProduct_id() {
         return product_id;
     }
 
-    public void setProduct_id(Integer product_id) {
+    public void setProduct_id(Long product_id) {
         this.product_id = product_id;
     }
 

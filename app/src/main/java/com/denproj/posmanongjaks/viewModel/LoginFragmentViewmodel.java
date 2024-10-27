@@ -1,18 +1,20 @@
 package com.denproj.posmanongjaks.viewModel;
 
-import android.util.Log;
-
 import androidx.lifecycle.ViewModel;
 
-import com.denproj.posmanongjaks.model.Role;
+import com.denproj.posmanongjaks.hilt.qualifier.OnlineImpl;
 import com.denproj.posmanongjaks.model.SavedLoginCredentials;
-import com.denproj.posmanongjaks.model.User;
+import com.denproj.posmanongjaks.repository.base.BranchRepository;
 import com.denproj.posmanongjaks.repository.base.LoginRepository;
+import com.denproj.posmanongjaks.repository.base.RoleRepository;
 import com.denproj.posmanongjaks.repository.base.SavedLoginRepository;
-import com.denproj.posmanongjaks.session.SessionManager;
-import com.denproj.posmanongjaks.util.AsyncRunner;
+import com.denproj.posmanongjaks.session.Session;
 import com.denproj.posmanongjaks.util.OnDataReceived;
 import com.denproj.posmanongjaks.util.OnUpdateUI;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
+
+import java.util.concurrent.CompletableFuture;
 
 import javax.inject.Inject;
 
@@ -23,107 +25,52 @@ public class LoginFragmentViewmodel extends ViewModel {
 
     LoginRepository loginRepository;
     SavedLoginRepository savedLoginRepository;
+    RoleRepository roleOnlineRepository;
+    BranchRepository branchOnlineRepository;
 
     @Inject
-    LoginFragmentViewmodel(LoginRepository loginRepository, SavedLoginRepository savedLoginRepository) {
+    public LoginFragmentViewmodel(LoginRepository loginRepository, SavedLoginRepository savedLoginRepository, @OnlineImpl RoleRepository roleOnlineRepository, @OnlineImpl BranchRepository branchOnlineRepository) {
         this.loginRepository = loginRepository;
         this.savedLoginRepository = savedLoginRepository;
+        this.roleOnlineRepository = roleOnlineRepository;
+        this.branchOnlineRepository = branchOnlineRepository;
     }
 
-    public void attemptLogin(IsSavedLoginPresent isSavedLoginPresent) {
-        AsyncRunner.runAsync(new AsyncRunner.Runner<SavedLoginCredentials>() {
-            @Override
-            public SavedLoginCredentials onBackground() throws Exception {
-
-                SavedLoginCredentials savedLoginCredentials = savedLoginRepository.getSavedLogin();
-                if (savedLoginCredentials != null) {
-                    SessionManager.getInstance(savedLoginCredentials.getBranchId());
-                } else {
-                    throw new Exception("No Saved Login");
-                }
-                return savedLoginCredentials;
-            }
-
-            @Override
-            public void onFinished(SavedLoginCredentials result) {
-
-            }
-
-            @Override
-            public void onUI(SavedLoginCredentials result) {
-                if (result != null) {
-                    isSavedLoginPresent.onHasSaved(result);
-                } else {
-                    isSavedLoginPresent.onNoSavedLogin();
-                }
-            }
-
-            @Override
-            public void onError(Exception e) {
-                isSavedLoginPresent.onNoSavedLogin();
-            }
-        });
+    public CompletableFuture<Session> attemptLogin() {
+        return savedLoginRepository.getSavedInfoToSession();
     }
 
+    public Boolean isUserSignedIn() {
+        return FirebaseAuth.getInstance().getCurrentUser() != null;
+    }
 
-    public void loginUserAndFetchBranchId(String email, String password, OnUpdateUI<String> onUpdateUI) {
-        loginRepository.loginUser(email, password, new OnDataReceived<String>() {
+    public CompletableFuture<Void> clearLocalDb() {
+        return savedLoginRepository.clearUserCredentials();
+    }
+
+    public void loginUserAndGetSession(String email, String password, OnUpdateUI<Session> onUpdateUI) {
+        loginRepository.loginUser(email, password, new OnDataReceived<Session>() {
             @Override
-            public void onSuccess(String result) {
-                loginRepository.getUserBranchId(new OnDataReceived<User>() {
-                    @Override
-                    public void onSuccess(User user) {
-                        loginRepository.getUserRole(user.getRole_id(), new OnDataReceived<Role>() {
-                            @Override
-                            public void onSuccess(Role result) {
-                                onUpdateUI.onSuccess(user.getBranch_id());
-                            }
-
-                            @Override
-                            public void onFail(Exception e) {
-                                onUpdateUI.onFail(e);
-                            }
-                        });
-                    }
-
-                    @Override
-                    public void onFail(Exception e) {
-                        onUpdateUI.onFail(new Exception("Something went wrong in fetching your branch."));
-                    }
-                });
+            public void onSuccess(Session result) {
+                onUpdateUI.onSuccess(result);
             }
 
             @Override
             public void onFail(Exception e) {
-                onUpdateUI.onFail(new Exception("Something went wrong in logging in."));
+                if (e instanceof FirebaseAuthInvalidCredentialsException) {
+                    onUpdateUI.onFail(new Exception("Wrong email or password."));
+                    return;
+                }
+
+                onUpdateUI.onFail(e);
             }
         });
     }
 
-    public void saveLogin(String email,  String password, String user_id, String branchId) {
-        AsyncRunner.runAsync(new AsyncRunner.Runner<Void>() {
-            @Override
-            public Void onBackground() throws Exception {
-                savedLoginRepository.saveLoginCredentials(new SavedLoginCredentials(email, password, branchId, user_id));
-                return null;
-            }
-
-            @Override
-            public void onFinished(Void result) {
-
-            }
-
-            @Override
-            public void onUI(Void result) {
-
-            }
-
-            @Override
-            public void onError(Exception e) {
-                Log.e("LoginInVM", e.getLocalizedMessage());
-            }
-        });
+    public CompletableFuture<Void> saveLogin(Session session) {
+        return savedLoginRepository.saveSessionToLocal(session);
     }
+
 
     public interface IsSavedLoginPresent {
         void onHasSaved(SavedLoginCredentials branchId);

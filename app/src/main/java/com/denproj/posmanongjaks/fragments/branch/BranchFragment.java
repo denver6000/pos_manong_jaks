@@ -7,7 +7,6 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 
@@ -16,6 +15,7 @@ import com.denproj.posmanongjaks.databinding.FragmentBranchBinding;
 import com.denproj.posmanongjaks.dialog.LoadingDialog;
 import com.denproj.posmanongjaks.hilt.qualifier.OfflineImpl;
 import com.denproj.posmanongjaks.hilt.qualifier.OnlineImpl;
+import com.denproj.posmanongjaks.model.Branch;
 import com.denproj.posmanongjaks.model.Item;
 import com.denproj.posmanongjaks.repository.base.ItemRepository;
 import com.denproj.posmanongjaks.util.OnUpdateUI;
@@ -58,13 +58,22 @@ public class BranchFragment extends Fragment {
         this.homeActivityViewmodel = new ViewModelProvider(requireActivity()).get(HomeActivityViewmodel.class);
         this.mainViewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
 
-        homeActivityViewmodel.getIsConnectionReachableLiveData().observeForever(isConnectionAvailable -> {
-            if (isConnectionAvailable) {
+        homeActivityViewmodel.sessionMutableLiveData.observe(getViewLifecycleOwner(), session -> {
+            if (session.isConnectionReachable()) {
                 branchFragmentViewmodel.setItemRepository(onlineItemRepository);
             } else {
                 branchFragmentViewmodel.setItemRepository(offlineItemRepository);
             }
-            getBranchIdFromMainViewModel();
+
+            Branch branch = session.getBranch();
+            if (session.getRole() == null || session.getBranch() == null) {
+                this.loadingDialog.dismiss();
+                Toast.makeText(requireContext(), "Invalid branch.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            setupViews();
+            getRealtimeBranchStocks(branch.getBranch_id());
         });
 
         this.loadingDialog = new LoadingDialog();
@@ -72,18 +81,9 @@ public class BranchFragment extends Fragment {
         return binding.getRoot();
     }
 
-    public void getBranchIdFromMainViewModel() {
-        this.homeActivityViewmodel.branchIdLiveData.observe(getViewLifecycleOwner(), branchId -> {
-            if (branchId.isEmpty()) {
-                return;
-            }
-            getRealtimeBranchStocks();
-            setupViews(branchId);
-        });
-    }
 
-    public void getRealtimeBranchStocks() {
-        this.branchFragmentViewmodel.getRealtimeBranchStocks(new OnUpdateUI<List<Item>>() {
+    public void getRealtimeBranchStocks(String branchId) {
+        this.branchFragmentViewmodel.getRealtimeBranchStocks(branchId, new OnUpdateUI<List<Item>>() {
             @Override
             public void onSuccess(List<Item> result) {
                 adapter.onDataSetChanged(result);
@@ -98,19 +98,9 @@ public class BranchFragment extends Fragment {
         });
     }
 
-    public void setupViews(String branchId) {
+    public void setupViews() {
         binding.stocksRcv.setLayoutManager(new GridLayoutManager(requireContext(), 2));
         binding.stocksRcv.setAdapter(adapter);
-
-//        binding.selectItemsBtn.setOnClickListener(view -> {
-//            SelectItemFragment itemFragment = new SelectItemFragment(branchId);
-//            itemFragment.show(getChildFragmentManager(), "");
-//        });
-
-//        binding.addNewItem.setOnClickListener(view -> {
-//            AddNewItemFragment addNewItemFragment = new AddNewItemFragment();
-//            addNewItemFragment.show(getChildFragmentManager(), "");
-//        });
     }
 
 

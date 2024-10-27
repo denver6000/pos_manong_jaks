@@ -10,7 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.denproj.posmanongjaks.databinding.ItemCheckoutCardLayoutBinding;
-import com.denproj.posmanongjaks.model.AddOn;
+import com.denproj.posmanongjaks.model.ProductWrapper;
 import com.denproj.posmanongjaks.model.Product;
 
 import java.util.ArrayList;
@@ -19,9 +19,9 @@ import java.util.List;
 
 public class CheckOutArrayAdapter extends ArrayAdapter<Product> {
 
-    HashMap<Product, AddOn> selectedItems;
+    HashMap<Product, ProductWrapper> selectedItems;
     List<Product> productsList;
-    public CheckOutArrayAdapter(HashMap<Product, AddOn> selectedItems, @NonNull Context context, int resource) {
+    public CheckOutArrayAdapter(HashMap<Product, ProductWrapper> selectedItems, @NonNull Context context, int resource) {
 
         super(context, resource, new ArrayList<>(selectedItems.keySet()));
         this.selectedItems = selectedItems;
@@ -32,7 +32,7 @@ public class CheckOutArrayAdapter extends ArrayAdapter<Product> {
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
         ItemCheckoutCardLayoutBinding binding = ItemCheckoutCardLayoutBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
         Product product = getItem(position);
-        AddOn addOn = selectedItems.get(product);
+        ProductWrapper productWrapper = selectedItems.get(product);
 
 
 

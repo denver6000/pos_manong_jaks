@@ -31,8 +31,8 @@ public interface SalesDao {
     LiveData<List<SaleItem>> getAllSaleItemWithSaleIdAsync(String saleId);
     @Query("SELECT * FROM SaleProduct WHERE sale_id = :saleId")
     LiveData<List<SaleProduct>> getAllSaleProductWithSaleIdAsync(String saleId);
-    @Query("SELECT * FROM Sale")
-    LiveData<List<Sale>> getAllRecordedSalesAsync();
+    @Query("SELECT * FROM Sale WHERE Sale.branchId = :branchId")
+    List<Sale> getAllRecordedSalesAsync(String branchId);
 
     @Query("SELECT * FROM SaleItem WHERE saleId = :saleId")
     List<SaleItem> getAllSaleItemWithSaleIdSync(String saleId);

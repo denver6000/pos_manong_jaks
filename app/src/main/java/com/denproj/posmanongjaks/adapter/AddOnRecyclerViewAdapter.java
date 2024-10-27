@@ -16,12 +16,12 @@ import java.util.HashMap;
 import java.util.List;
 
 public class AddOnRecyclerViewAdapter extends RecyclerView.Adapter<AddOnRecyclerViewAdapter.ViewHolder> {
-    List<Item> addOns;
-    HashMap<Item, Integer> selectedItems;
+    List<Item> items;
+    HashMap<Item, Integer> itemsMap;
 
     public AddOnRecyclerViewAdapter(List<Item> addOns) {
-        this.addOns = addOns;
-        selectedItems = new HashMap<>();
+        this.items = addOns;
+        itemsMap = new HashMap<>();
     }
 
     @NonNull
@@ -32,7 +32,7 @@ public class AddOnRecyclerViewAdapter extends RecyclerView.Adapter<AddOnRecycler
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        Item item = addOns.get(position);
+        Item item = items.get(position);
         AddOnLayoutBinding addOnLayoutBinding = holder.binding;
         addOnLayoutBinding.setAddOnName(item.getItem_name());
         addOnLayoutBinding.setAddOnPrice(String.valueOf(item.getItem_price()));
@@ -49,17 +49,17 @@ public class AddOnRecyclerViewAdapter extends RecyclerView.Adapter<AddOnRecycler
             }
         });
         addOnLayoutBinding.addAddOn.setOnClickListener(view -> {
-            selectedItems.put(item, 0);
+            itemsMap.put(item, 1);
         });
     }
 
-    public HashMap<Item, Integer> getSelectedItems() {
-        return selectedItems;
+    public HashMap<Item, Integer> getItemsMap() {
+        return itemsMap;
     }
 
     @Override
     public int getItemCount() {
-        return addOns.size();
+        return items.size();
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
@@ -72,7 +72,7 @@ public class AddOnRecyclerViewAdapter extends RecyclerView.Adapter<AddOnRecycler
         }
     }
 
-    public void clearSelectedProducts() {
-        this.selectedItems.clear();
+    public void clearSelectedItems() {
+        this.itemsMap.clear();
     }
 }

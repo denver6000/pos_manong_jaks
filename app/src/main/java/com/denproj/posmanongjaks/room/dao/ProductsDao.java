@@ -18,7 +18,10 @@ public interface ProductsDao {
     @Query("SELECT * FROM Product")
     List<Product> getAllProducts();
 
-    @Query("SELECT * FROM Item WHERE ads_on = 1")
+    @Query("SELECT * FROM Item WHERE ads_on = TRUE")
     List<Item> getAllAdOns();
+
+    @Query("DELETE FROM Product")
+    void clearProducts();
 
 }

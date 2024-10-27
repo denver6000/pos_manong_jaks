@@ -20,8 +20,14 @@
         android:label="activity_home"
         tools:layout="@layout/activity_home" >
         <argument
-            android:name="branchId"
-            app:argType="string" />
+            android:name="branchInfo"
+            app:argType="com.denproj.posmanongjaks.model.Branch" />
+        <argument
+            android:name="roleInfo"
+            app:argType="com.denproj.posmanongjaks.model.Role" />
+        <argument
+            android:name="userInfo"
+            app:argType="com.denproj.posmanongjaks.model.User" />
         <argument
             android:name="isConnectionReachable"
             app:argType="boolean" />

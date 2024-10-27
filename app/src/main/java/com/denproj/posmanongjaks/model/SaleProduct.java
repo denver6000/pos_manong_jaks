@@ -13,12 +13,12 @@ public class SaleProduct {
 
     @PrimaryKey(autoGenerate = true)
     int saleItemId;
-    int product_id;
+    Long product_id;
     int amount;
     String sale_id;
     String name;
 
-    public SaleProduct(int product_id, int amount, String sale_id, String name) {
+    public SaleProduct(Long product_id, int amount, String sale_id, String name) {
         this.product_id = product_id;
         this.amount = amount;
         this.sale_id = sale_id;
@@ -33,11 +33,11 @@ public class SaleProduct {
         this.saleItemId = saleItemId;
     }
 
-    public int getProduct_id() {
+    public Long getProduct_id() {
         return product_id;
     }
 
-    public void setProduct_id(int product_id) {
+    public void setProduct_id(Long product_id) {
         this.product_id = product_id;
     }
 
