@@ -119,10 +119,6 @@ public class SalesViewFragment extends Fragment {
         return binding.getRoot();
     }
 
-    public void getBranchId() {
-
-    }
-
     public void setupViews(Session session) {
         binding.checkOutItems.setOnClickListener(view -> {
             new CheckOutDialogFragment(session, productsRecyclerViewAdapter.getSelectedProducts(), addOnRecyclerViewAdapter.getItemsMap(), new CheckOutDialogFragment.OnSaleFinished() {
@@ -130,7 +126,6 @@ public class SalesViewFragment extends Fragment {
                 public void onSuccess(Double change) {
                     Toast.makeText(requireContext(), "Sale Complete", Toast.LENGTH_SHORT).show();
                     clearOrders();
-                    //showSaleCompleteDialog(change);
                 }
 
                 @Override
@@ -181,19 +176,4 @@ public class SalesViewFragment extends Fragment {
         productsRecyclerViewAdapter.clearSelectedProducts();
         addOnRecyclerViewAdapter.clearSelectedItems();
     }
-
-    public void showSaleCompleteDialog(Double change) {
-        AlertDialog.Builder saleCompleteDialogBuilder = new AlertDialog.Builder(requireContext());
-        saleCompleteDialogBuilder.setTitle("Change.");
-        saleCompleteDialogBuilder.setMessage(change.toString());
-
-        saleCompleteDialogBuilder.setPositiveButton("Ok", (dialogInterface1, i1) -> {
-            dialogInterface1.dismiss();
-        });
-
-        AlertDialog saleCompleteDialog = saleCompleteDialogBuilder.create();
-        saleCompleteDialog.show();
-    }
-
-
 }

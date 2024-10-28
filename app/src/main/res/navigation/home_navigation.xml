@@ -56,5 +56,7 @@
         android:id="@+id/printActivity"
         android:name="com.denproj.posmanongjaks.PrintActivity"
         android:label="activity_print"
-        tools:layout="@layout/activity_print" />
+        tools:layout="@layout/activity_print" >
+        <argument android:name="printStr" />
+    </activity>
 </navigation>

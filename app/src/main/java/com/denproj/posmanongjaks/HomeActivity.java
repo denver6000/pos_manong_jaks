@@ -1,6 +1,5 @@
 package com.denproj.posmanongjaks;
 
-import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 
@@ -10,7 +9,6 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.lifecycle.MutableLiveData;
@@ -32,7 +30,6 @@ import com.google.android.material.navigation.NavigationView;
 import android.Manifest;
 
 import java.util.Map;
-import java.util.function.BiConsumer;
 
 import javax.inject.Inject;
 
@@ -118,7 +115,7 @@ public class HomeActivity extends AppCompatActivity {
                 R.id.salesHistoryFragment,
                 R.id.settings).setOpenableLayout(layout).build();
 
-        NavController navController = ((NavHostFragment)getSupportFragmentManager().findFragmentById(R.id.fragmentContainerView2)).getNavController();
+        NavController navController = ((NavHostFragment)getSupportFragmentManager().findFragmentById(R.id.homeFragmentContainerView)).getNavController();
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(navigationView, navController);
     }
@@ -133,7 +130,7 @@ public class HomeActivity extends AppCompatActivity {
     }
     @Override
     public boolean onSupportNavigateUp() {
-        NavController navController = Navigation.findNavController(this, R.id.fragmentContainerView2);
+        NavController navController = Navigation.findNavController(this, R.id.homeFragmentContainerView);
         return NavigationUI.navigateUp(navController, appBarConfiguration)
                 || super.onSupportNavigateUp();
     }

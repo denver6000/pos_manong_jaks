@@ -8,16 +8,21 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
+import androidx.navigation.ui.NavigationUI;
 
+import com.denproj.posmanongjaks.R;
 import com.denproj.posmanongjaks.databinding.FragmentShowReceiptDialogBinding;
+import com.denproj.posmanongjaks.model.CompleteSaleInfo;
 
 
 public class ShowReceiptDialogFragment extends DialogFragment {
 
-    Bitmap receipt;
+    CompleteSaleInfo completeSaleInfo;
 
-    public ShowReceiptDialogFragment(Bitmap receipt) {
-        this.receipt = receipt;
+    public ShowReceiptDialogFragment(CompleteSaleInfo completeSaleInfo) {
+        this.completeSaleInfo = completeSaleInfo;
     }
 
     @NonNull
@@ -25,7 +30,11 @@ public class ShowReceiptDialogFragment extends DialogFragment {
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         FragmentShowReceiptDialogBinding binding = FragmentShowReceiptDialogBinding.inflate(getLayoutInflater());
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-        binding.receiptImage.setImageBitmap(receipt);
+        NavController navController = Navigation.findNavController(requireActivity(), R.id.homeFragmentContainerView);
+
+
+
+
         builder.setView(binding.getRoot());
         AlertDialog alertDialog = builder.create();
         return alertDialog;

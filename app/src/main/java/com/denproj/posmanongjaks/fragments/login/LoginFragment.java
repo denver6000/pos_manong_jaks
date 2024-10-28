@@ -78,9 +78,9 @@ public class LoginFragment extends Fragment {
 
     public void setupLoginButton(Boolean isNetAvailable) {
         binding.loginActionButton.setOnClickListener(view -> {
-            String email = "denverballesteros7@gmail.com";
-            String password = "111111";
-            if (true) {
+            String email = binding.getEmail();
+            String password = binding.getPassword();
+            if (email != null && password != null && !password.isEmpty() && !email.isEmpty()) {
                 viewmodel.loginUserAndGetSession(email, password, new OnUpdateUI<Session>() {
                     @Override
                     public void onSuccess(Session session) {

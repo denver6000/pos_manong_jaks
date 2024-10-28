@@ -101,9 +101,7 @@ public class CheckOutDialogFragment extends DialogFragment {
                 @Override
                 public void onSuccess(CompleteSaleInfo result) {
                     onSaleFinished.onSuccess(paidAmount.doubleValue() - total);
-                    new ShowReceiptDialogFragment(
-                            viewmodel.printReceipt(requireContext(), result, CheckOutDialogFragment.this.session)
-                    ).show(getParentFragmentManager(), "");
+                    new ShowReceiptDialogFragment(result).show(getParentFragmentManager(), "");
                 }
 
                 @Override
@@ -128,12 +126,14 @@ public class CheckOutDialogFragment extends DialogFragment {
     public interface OnTotalAmountChanged {
         void onChanged(Double total);
     }
-    
-    
 
     public interface OnSaleFinished {
         void onSuccess(Double change);
         void onFail();
+    }
+
+    public interface OnPrintReceipt {
+        void onPrintReceipt(String strToPrint);
     }
 
 
