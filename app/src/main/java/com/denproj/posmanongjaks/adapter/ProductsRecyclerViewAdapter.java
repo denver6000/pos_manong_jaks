@@ -27,15 +27,10 @@ public class ProductsRecyclerViewAdapter extends RecyclerView.Adapter<ProductsRe
     List<Product> productList = new ArrayList<>();
     private HashMap<Long, ProductWrapper> selectedProducts = new HashMap<>();
 
-    List<Item> addOnsList;
-    String branchId;
-    public ProductsRecyclerViewAdapter(List<Item> list, String branchId) {
-        this.addOnsList = list;
-        this.branchId = branchId;
-    }
 
     public void refreshAdapter(List<Product> newProductList) {
-        productList = newProductList;
+        this.productList.clear();
+        productList.addAll(newProductList);
         this.notifyDataSetChanged();
     }
 
@@ -52,7 +47,7 @@ public class ProductsRecyclerViewAdapter extends RecyclerView.Adapter<ProductsRe
         binding.setSaleAmount(String.valueOf(1));
 
         binding.incrementProductAmount.setOnClickListener(view -> {
-            selectedProducts.putIfAbsent(product.getProduct_id(), new ProductWrapper(0, product));
+            selectedProducts.putIfAbsent(product.getProduct_id(), new ProductWrapper(1, product));
         });
 
         binding.setProductName(product.getProduct_name());

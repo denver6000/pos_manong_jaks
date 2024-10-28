@@ -18,7 +18,7 @@ public class Sale {
     @NonNull
     @Exclude
     @com.google.firebase.database.Exclude
-    private String saleId;
+    private Integer saleId;
     @Exclude
     @com.google.firebase.database.Exclude
     private int year;
@@ -46,7 +46,7 @@ public class Sale {
     private Double change = 0d;
 
 
-    public Sale(String saleId, int year, int month, int day, String branchId, HashMap<String, SaleItem> itemsSold, Timestamp timestamp, Double total, Double paidAmount, Double change) {
+    public Sale(Integer saleId, int year, int month, int day, String branchId, HashMap<String, SaleItem> itemsSold, Timestamp timestamp, Double total, Double paidAmount, Double change) {
         this.saleId = saleId;
         this.year = year;
         this.month = month;
@@ -62,11 +62,11 @@ public class Sale {
     public Sale() {
     }
 
-    public String getSaleId() {
+    public Integer getSaleId() {
         return saleId;
     }
 
-    public void setSaleId(String saleId) {
+    public void setSaleId(Integer saleId) {
         this.saleId = saleId;
     }
 

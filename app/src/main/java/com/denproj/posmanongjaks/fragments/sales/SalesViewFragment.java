@@ -1,6 +1,7 @@
 package com.denproj.posmanongjaks.fragments.sales;
 
 import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -9,10 +10,16 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.dantsu.escposprinter.textparser.PrinterTextParserImg;
+import com.denproj.posmanongjaks.R;
 import com.denproj.posmanongjaks.adapter.AddOnRecyclerViewAdapter;
 import com.denproj.posmanongjaks.adapter.ProductsRecyclerViewAdapter;
 import com.denproj.posmanongjaks.databinding.FragmentSalesViewBinding;
@@ -20,17 +27,25 @@ import com.denproj.posmanongjaks.dialog.CheckOutDialogFragment;
 import com.denproj.posmanongjaks.dialog.LoadingDialog;
 import com.denproj.posmanongjaks.hilt.qualifier.OfflineImpl;
 import com.denproj.posmanongjaks.hilt.qualifier.OnlineImpl;
+import com.denproj.posmanongjaks.model.Branch;
+import com.denproj.posmanongjaks.model.CompleteSaleInfo;
 import com.denproj.posmanongjaks.model.Item;
 import com.denproj.posmanongjaks.model.Product;
+import com.denproj.posmanongjaks.model.SaleItem;
+import com.denproj.posmanongjaks.model.SaleProduct;
 import com.denproj.posmanongjaks.repository.base.AddOnsRepository;
 import com.denproj.posmanongjaks.repository.base.ProductRepository;
 import com.denproj.posmanongjaks.session.Session;
+import com.denproj.posmanongjaks.util.OnFetchFailed;
 import com.denproj.posmanongjaks.util.OnUpdateUI;
 import com.denproj.posmanongjaks.viewModel.HomeActivityViewmodel;
 import com.denproj.posmanongjaks.viewModel.MainViewModel;
 import com.denproj.posmanongjaks.viewModel.SalesFragmentViewmodel;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import javax.inject.Inject;
 
@@ -51,23 +66,6 @@ public class SalesViewFragment extends Fragment {
 
     LoadingDialog loadingDialog = new LoadingDialog();
 
-
-    @Inject
-    @OfflineImpl
-    ProductRepository productOfflineRepository;
-
-    @Inject
-    @OnlineImpl
-    ProductRepository productOnlineRepository;
-
-    @Inject
-    @OfflineImpl
-    AddOnsRepository addOnOfflineRepository;
-
-    @Inject
-    @OnlineImpl
-    AddOnsRepository addOnlineRepository;
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -82,35 +80,17 @@ public class SalesViewFragment extends Fragment {
         showDialog();
 
         this.homeActivityViewmodel.sessionMutableLiveData.observe(getViewLifecycleOwner(), session -> {
-            if (session.isConnectionReachable()) {
-                this.viewmodel.setProductRepository(productOnlineRepository);
-                this.viewmodel.setAddOnsRepository(addOnlineRepository);
-            } else {
-                this.viewmodel.setProductRepository(productOfflineRepository);
-                this.viewmodel.setAddOnsRepository(addOnOfflineRepository);
-            }
             String branchId = session.getBranch().getBranch_id();
             if (branchId.isEmpty()) {
                 Toast.makeText(requireContext(), "No Branch Is Associated With this account.", Toast.LENGTH_LONG).show();
                 return;
             }
 
-            viewmodel.loadAddOns(branchId, new OnUpdateUI<List<Item>>() {
-                @Override
-                public void onSuccess(List<Item> result) {
-                    setupProductRcv(branchId, result);
-                    loadProductsOnBranch(branchId);
+            setupAddOnRcv();
+            observeAddons(branchId);
 
-                    addOnRecyclerViewAdapter = new AddOnRecyclerViewAdapter(result);
-                    binding.addOnList.setAdapter(addOnRecyclerViewAdapter);
-                    Toast.makeText(requireContext(), result + "", Toast.LENGTH_SHORT).show();
-                }
-
-                @Override
-                public void onFail(Exception e) {
-                    Log.e("SalesViewFragment", e.getMessage());
-                }
-            });
+            setupProductRcv();
+            observeProducts(branchId);
 
             setupViews(session);
         });
@@ -119,48 +99,67 @@ public class SalesViewFragment extends Fragment {
         return binding.getRoot();
     }
 
-    public void getBranchId() {
-
-    }
-
     public void setupViews(Session session) {
         binding.checkOutItems.setOnClickListener(view -> {
-            new CheckOutDialogFragment(session, productsRecyclerViewAdapter.getSelectedProducts(), addOnRecyclerViewAdapter.getItemsMap(), new CheckOutDialogFragment.OnSaleFinished() {
+            new CheckOutDialogFragment(session.getBranch(), productsRecyclerViewAdapter.getSelectedProducts(), addOnRecyclerViewAdapter.getItemsMap(), new CheckOutDialogFragment.OnSaleFinished() {
                 @Override
-                public void onSuccess(Double change) {
-                    Toast.makeText(requireContext(), "Sale Complete", Toast.LENGTH_SHORT).show();
+                public void onSuccess(CompleteSaleInfo completeSaleInfo) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+                    builder.setTitle("Print Receipt?").setMessage("Print a receipt");
+
+                    builder.setPositiveButton("Print", (dialogInterface, i) -> {
+                        NavController navController = Navigation.findNavController(requireActivity(), R.id.homeFragmentContainerView);
+                        navController.navigate(SalesViewFragmentDirections.actionSalesViewToPrintActivity(formatReceipt(completeSaleInfo, session.getBranch(), session.getUser().getUser_id())));
+                    });
+
+                    builder.setNegativeButton("Close", (dialogInterface, i) -> {
+                        dialogInterface.dismiss();
+                    });
+
+                    builder.create().show();
                     clearOrders();
-                    //showSaleCompleteDialog(change);
                 }
 
                 @Override
-                public void onFail() {
-                    Toast.makeText(requireContext(), "Sale Failed", Toast.LENGTH_SHORT).show();
+                public void onFail(Exception e, HashMap<String, String> itemNameAndErrors) {
+                    if (e != null) {
+                        showErrorDialog("A Fatal Error Occurred", e.getMessage());
+                    } else if (!itemNameAndErrors.isEmpty()) {
+                        itemNameAndErrors.forEach((itemName, errorMsg) -> {
+                            showErrorDialog(itemName, errorMsg);
+                        });
+                    }
                 }
             }).show(getChildFragmentManager(), "");
         });
     }
 
-    public void loadProductsOnBranch (String branchId) {
-        viewmodel.loadProductsOfBranch(branchId, new OnUpdateUI<List<Product>>() {
-            @Override
-            public void onSuccess(List<Product> result) {
-                productsRecyclerViewAdapter.refreshAdapter(result);
-                hideDialog();
-            }
-
-            @Override
-            public void onFail(Exception e) {
-                Toast.makeText(requireContext(), e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
-            }
+    public void observeProducts (String branchId) {
+        this.viewmodel.observeProductListOfBranch(branchId, e -> {
+            Toast.makeText(requireContext(), "Something went wrong " + e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+        }).observe(getViewLifecycleOwner(), products -> {
+            productsRecyclerViewAdapter.refreshAdapter(products);
+            hideDialog();
         });
     }
 
-    public void setupProductRcv(String branchId, List<Item> addOnsList) {
-        this.productsRecyclerViewAdapter = new ProductsRecyclerViewAdapter(addOnsList, branchId);
+    public void observeAddons(String branchId) {
+        this.viewmodel.observeAddOnsListOfBranch(branchId, e -> {
+            Toast.makeText(requireContext(), "Something went wrong " + e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+        }).observe(getViewLifecycleOwner(), items -> {
+            addOnRecyclerViewAdapter.refreshAdapter(items);
+        });
+    }
+
+    public void setupProductRcv() {
+        this.productsRecyclerViewAdapter = new ProductsRecyclerViewAdapter();
         binding.menuRcv.setAdapter(productsRecyclerViewAdapter);
     }
 
+    public void setupAddOnRcv() {
+        this.addOnRecyclerViewAdapter = new AddOnRecyclerViewAdapter();
+        this.binding.addOnList.setAdapter(addOnRecyclerViewAdapter);
+    }
 
 
     public void setupAdapters() {
@@ -182,18 +181,38 @@ public class SalesViewFragment extends Fragment {
         addOnRecyclerViewAdapter.clearSelectedItems();
     }
 
-    public void showSaleCompleteDialog(Double change) {
-        AlertDialog.Builder saleCompleteDialogBuilder = new AlertDialog.Builder(requireContext());
-        saleCompleteDialogBuilder.setTitle("Change.");
-        saleCompleteDialogBuilder.setMessage(change.toString());
+    public String formatReceipt(CompleteSaleInfo completeSaleInfo, Branch branch, String uid) {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("[C]<font size='big'>Manong Jak's</font>\n");
+        stringBuilder.append("[C]<font size='big'>Burger</font>");
+        stringBuilder.append("\n[C]").append(branch.getBranch_name()).append("\n").append("[L]<b>Products</b>\n");
 
-        saleCompleteDialogBuilder.setPositiveButton("Ok", (dialogInterface1, i1) -> {
-            dialogInterface1.dismiss();
+        completeSaleInfo.getSaleProducts().forEach(saleProduct -> {
+            stringBuilder.append("[L]").append(saleProduct.getName()).append("[R]x").append(saleProduct.getAmount()).append("\n");
         });
 
-        AlertDialog saleCompleteDialog = saleCompleteDialogBuilder.create();
-        saleCompleteDialog.show();
+        stringBuilder.append("[L]<b>Add Ons</b>\n");
+        completeSaleInfo.getSaleItems().forEach(saleItem -> {
+            stringBuilder.append("[L]").append(saleItem.getItemName()).append("[R]x").append(saleItem.getAmount()).append("\n");
+        });
+
+        stringBuilder.append("[L]\n");
+        stringBuilder.append("[L]Total:").append("[R]").append(completeSaleInfo.getSale().getTotal()).append(" Pesos\n");
+        stringBuilder.append("[L]Change:").append("[R]").append(completeSaleInfo.getSale().getChange()).append(" Pesos\n");
+        stringBuilder.append("[L]Sale Id:").append("[R]").append(completeSaleInfo.getSale().getSaleId()).append("\n");
+        stringBuilder.append("[L]Sold By:").append("[R]UID: ").append(uid).append("\n");
+        stringBuilder.append("[C]App Generated Receipt\n");
+        return stringBuilder.toString();
     }
 
-
+    public void showErrorDialog(String title, String message) {
+        AlertDialog.Builder errorDialog = new AlertDialog.Builder(requireContext());
+        errorDialog
+                .setTitle(title)
+                .setMessage(message)
+                .setPositiveButton("Okay", (dialogInterface, i) -> {
+                    dialogInterface.dismiss();
+                });
+        errorDialog.create().show();
+    }
 }

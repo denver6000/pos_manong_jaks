@@ -29,7 +29,7 @@ import com.denproj.posmanongjaks.room.dao.UserInfoDao;
         SavedLoginCredentials.class,
         User.class,
         Role.class,
-        Branch.class}, exportSchema = false, version = 15)
+        Branch.class}, exportSchema = false, version = 17)
 public abstract class AppDatabase extends RoomDatabase {
 
     private static AppDatabase database = null;

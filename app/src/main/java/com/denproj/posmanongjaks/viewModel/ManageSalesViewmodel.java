@@ -9,12 +9,13 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.denproj.posmanongjaks.hilt.qualifier.OfflineImpl;
+import com.denproj.posmanongjaks.model.CompleteSaleInfo;
 import com.denproj.posmanongjaks.model.Sale;
 import com.denproj.posmanongjaks.model.SaleItem;
 import com.denproj.posmanongjaks.model.SaleProduct;
 import com.denproj.posmanongjaks.repository.base.SaleRepository;
-import com.denproj.posmanongjaks.util.AsyncRunner;
-import com.denproj.posmanongjaks.util.OnDataReceived;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -25,9 +26,11 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import javax.inject.Inject;
 
@@ -35,10 +38,14 @@ import dagger.hilt.android.lifecycle.HiltViewModel;
 
 @HiltViewModel
 public class ManageSalesViewmodel extends ViewModel {
-    public static final String PATH_TO_SALES_RECORD = "sales_record_t_2";
+
+    public static final String PATH_TO_ITEM_OF_BRANCHES = "items_on_branches";
+    public static final String PATH_TO_SALES_RECORD = "sales_record";
     SaleRepository saleRepository;
     MutableLiveData<List<Sale>> salesLiveData = new MutableLiveData<>(new ArrayList<>());
     private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+
+    // private MutableLiveData<Item>
     @Inject
     public ManageSalesViewmodel(@OfflineImpl SaleRepository saleRepository) {
         this.saleRepository = saleRepository;
@@ -48,92 +55,104 @@ public class ManageSalesViewmodel extends ViewModel {
         return saleRepository.getAllRecordedSalesOnBranch(branchId);
     }
 
-    public void synchronizeSales(String branchId, OnDataReceived<Void> onDataReceived) {
-        List<Sale> sales = salesLiveData.getValue();
-        if (sales == null || sales.isEmpty()) {
-            onDataReceived.onFail(new Exception("No Sales Record"));
+    public CompletableFuture<Void> clearSales() {
+        return CompletableFuture.supplyAsync(() -> {
+            saleRepository.clearSale();
+            return null;
+        });
+    }
+
+    public CompletableFuture<Void> syncAllSale(String branchId, OnItemNotFoundInBranch onItemNotFoundInBranch) {
+        return CompletableFuture.supplyAsync(() -> {
+            List<Sale> sales = null;
+
+            try {
+                sales = saleRepository.getAllRecordedSalesOnBranch(branchId).get();
+            } catch (ExecutionException | InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+
+            if (sales.isEmpty()) {
+                throw new RuntimeException(new Exception("No Sales Record Found"));
+            }
+
+            for (Sale sale : sales) {
+                List<SaleProduct> saleProducts = saleRepository.getAllSaleProductBySaleIdSync(sale.getSaleId());
+                List<SaleItem> saleItems = saleRepository.getAllSaleItemBySaleIdSync(sale.getSaleId());
+                CompleteSaleInfo completeSaleInfo = new CompleteSaleInfo(sale, saleItems, saleProducts);
+                checkIfItemsToReduceExists(completeSaleInfo, branchId, onItemNotFoundInBranch);
+            }
+            return null;
+        });
+    }
+
+    public CompletableFuture<Void> removeSaleById(Integer saleId) {
+        return CompletableFuture.supplyAsync(() -> {
+            saleRepository.removeLocalSaleById(saleId);
+            return null;
+        });
+    }
+
+    public CompletableFuture<Void> insertSale(Sale sale, List<SaleItem> saleItems, List<SaleProduct> saleProducts) {
+        CompletableFuture<Void> completableFuture = new CompletableFuture<>();
+        FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
+        sale.setSoldItems(saleItems);
+        sale.setSoldProducts(saleProducts);
+        firebaseDatabase.getReference("sales_record").child(sale.getSaleId() + "").setValue(sale).addOnSuccessListener(unused -> {
+            completableFuture.complete(null);
+        }).addOnFailureListener(completableFuture::completeExceptionally);
+        return completableFuture;
+    }
+
+    public void checkIfItemsToReduceExists(CompleteSaleInfo completeSaleInfo, String branchId, OnItemNotFoundInBranch onItemNotFoundInBranch) {
+        FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
+        DatabaseReference itemsOnBranchList = firebaseDatabase.getReference("items_on_branches/" + branchId);
+        if ((completeSaleInfo.getSaleItems() == null && completeSaleInfo.getSaleProducts() == null) || (completeSaleInfo.getSaleProducts().isEmpty() && completeSaleInfo.getSaleItems().isEmpty())) {
+            onItemNotFoundInBranch.allItemsFound(completeSaleInfo, new HashMap<>());
             return;
         }
-
-
-        AsyncRunner.runAsync(new AsyncRunner.Runner<Void>() {
-            @Override
-            public Void onBackground() throws Exception {
-                List<Sale> sales = salesLiveData.getValue();
-                if (sales == null || sales.isEmpty()) {
-                    throw new Exception("Sale is empty");
+        itemsOnBranchList.get().addOnSuccessListener(branchItemList -> {
+            List<Integer> missingItemsInBranch = new ArrayList<>();
+            HashMap<Integer, Integer> itemIdAndAmountToRemove = new HashMap<>();
+            for (SaleItem saleItem : completeSaleInfo.getSaleItems()) {
+                if (branchItemList.hasChild(saleItem.getItem_id() + "")) {
+                    itemIdAndAmountToRemove.put(saleItem.getItem_id(), saleItem.getAmount());
+                } else {
+                    missingItemsInBranch.add(saleItem.getItem_id());
                 }
+            }
 
-                sales.forEach(sale -> {
-                    List<SaleProduct> saleProducts = saleRepository.getAllSaleProductBySaleIdSync(sale.getSaleId());
-                    List<SaleItem> saleItems = saleRepository.getAllSaleItemBySaleIdSync(sale.getSaleId());
-
-                    if (saleProducts != null && !saleProducts.isEmpty()) {
-                        saleProducts.forEach(saleProduct -> {
-                            getRecipe(branchId, saleProduct.getProduct_id());
-                        });
+            completeSaleInfo.getSaleProducts().forEach(saleProduct -> {
+                DatabaseReference recipeOfProductList = firebaseDatabase.getReference(
+                        "products_on_branches/"
+                                + branchId + "/"
+                                + saleProduct.getProduct_id()
+                                + "/recipes");
+                recipeOfProductList.get().addOnSuccessListener(recipes -> {
+                    for (DataSnapshot recipeSnapshot : recipes.getChildren()) {
+                        String itemKey = recipeSnapshot.getKey();
+                        if (branchItemList.hasChild(itemKey)) {
+                            Integer amount = recipeSnapshot.child("amount").getValue(Integer.class);
+                            itemIdAndAmountToRemove.put(Integer.valueOf(itemKey), saleProduct.getAmount() * amount);
+                        } else {
+                            missingItemsInBranch.add(Integer.parseInt(itemKey));
+                        }
                     }
-
-                    if (saleItems != null && !saleItems.isEmpty()) {
-                        saleItems.forEach(saleItem -> {
-                            reduceStock(saleItem.getItem_id(), branchId, saleItem.getAmount());
-                        });
+                }).addOnSuccessListener(dataSnapshot -> {
+                    if (!missingItemsInBranch.isEmpty()) {
+                        onItemNotFoundInBranch.itemNotFound(completeSaleInfo.getSale(), missingItemsInBranch);
+                    } else {
+                        onItemNotFoundInBranch.allItemsFound(completeSaleInfo, itemIdAndAmountToRemove);
                     }
-
-                    insertSaleToDatabase(sale, saleProducts, saleItems);
                 });
-
-
-
-                return null;
-            }
-
-            @Override
-            public void onFinished(Void result) {
-
-            }
-
-            @Override
-            public void onUI(Void result) {
-                onDataReceived.onSuccess(result);
-            }
-
-            @Override
-            public void onError(Exception e) {
-
-                onDataReceived.onFail(e);
-            }
-        });
+            });
+        }).addOnFailureListener(onItemNotFoundInBranch::onError);
     }
 
-    public void insertSaleToDatabase(Sale sale, List<SaleProduct> saleProducts, List<SaleItem> saleItems) {
+    public CompletableFuture<Void> reduceStock(int itemId, String branchId, int amountToReduce) {
+        CompletableFuture<Void> reduceStockFuture = new CompletableFuture<>();
         FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
-        DatabaseReference databaseReference = firebaseDatabase.getReference(PATH_TO_SALES_RECORD);
-        DatabaseReference ref = databaseReference.child(sale.getSaleId());
-        ref.setValue(sale);
-        ref.child("date").setValue(formatDateString(sale.getYear(), sale.getMonth(), sale.getDay()));
-        ref.child("sold_products").setValue(saleProducts);
-        ref.child("sold_items").setValue(saleItems);
-    }
-
-    private void getRecipe(String branchId, Long productId) {
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        database.getReference("products_on_branches/"+branchId+"/"+productId+"/recipes").get().addOnSuccessListener(dataSnapshot -> {
-            for (DataSnapshot child : dataSnapshot.getChildren()) {
-                if (child.exists()) {
-                    String itemKey = child.getKey();
-                    Integer amount = child.child("amount").getValue(Integer.class);
-                    if (itemKey != null && amount != null) {
-                        reduceStock(Integer.parseInt(itemKey), branchId, amount);
-                    }
-                }
-            }
-        });
-    }
-
-    private void reduceStock(int itemId, String branchId, int amountToReduce) {
-        FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
-        firebaseDatabase.getReference("items_on_branches/"+branchId+"/"+itemId).addListenerForSingleValueEvent(new ValueEventListener() {
+        firebaseDatabase.getReference("items_on_branches/" + branchId + "/" + itemId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 DataSnapshot quantityRef = snapshot.child("item_quantity");
@@ -150,22 +169,69 @@ public class ManageSalesViewmodel extends ViewModel {
                 Log.d("Test", "Test");
             }
         });
+        return reduceStockFuture;
     }
 
-    public LiveData<List<SaleProduct>> getSoldProductsAsync(String saleId) {
+    public CompletableFuture<Void> insertToDbAndRemoveLocally(CompleteSaleInfo completeSaleInfo) {
+        CompletableFuture<Void> completableFuture = new CompletableFuture<>();
+        FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
+        DatabaseReference salesNodeRef = firebaseDatabase.getReference(PATH_TO_SALES_RECORD + "/");
+        Sale sale = completeSaleInfo.getSale();
+        sale.setSoldItems(completeSaleInfo.getSaleItems());
+        sale.setSoldProducts(completeSaleInfo.getSaleProducts());
+        salesNodeRef
+                .child(sale.getSaleId() + "")
+                .setValue(sale)
+                .addOnSuccessListener(unused -> {
+                    removeSaleById(sale.getSaleId())
+                            .thenAccept(completableFuture::complete)
+                            .exceptionally(throwable -> {
+                                completableFuture.completeExceptionally(throwable);
+                                return null;
+                            });
+                }).addOnFailureListener(e -> {
+                    completableFuture.completeExceptionally(new Exception(e));
+                });
+        return completableFuture;
+    }
+
+
+    public CompletableFuture<Void> processStockReduction(HashMap<Integer, Integer> itemsToRemoveAndAmount, String branchId, OnStockReductionError onStockReductionError) {
+        CompletableFuture<Void> completableFuture = new CompletableFuture<>();
+        FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
+        DatabaseReference ref = firebaseDatabase.getReference(PATH_TO_ITEM_OF_BRANCHES + "/" + branchId);
+        ref.get().addOnSuccessListener(dataSnapshot -> {
+            itemsToRemoveAndAmount.forEach((itemId, amountToReduce) -> {
+                DataSnapshot item = dataSnapshot.child(itemId.toString());
+                DataSnapshot itemQuantitySnapshot = item.child("item_quantity");
+                Integer amount = itemQuantitySnapshot.getValue(Integer.class);
+                if (amount != null) {
+                    itemQuantitySnapshot.getRef().setValue(amount - amountToReduce);
+                } else {
+                    onStockReductionError.errorOnItem(item.child("item_name").getValue(String.class));
+                }
+            });
+            completableFuture.complete(null);
+        }).addOnFailureListener(completableFuture::completeExceptionally);
+        return completableFuture;
+    }
+
+    public LiveData<List<SaleProduct>> getSoldProductsAsync(Integer saleId) {
         return saleRepository.getAllProductsWithSaleId(saleId);
     }
 
-    public LiveData<List<SaleItem>> getSoldAddOnsAsync(String saleId) {
+    public LiveData<List<SaleItem>> getSoldAddOnsAsync(Integer saleId) {
         return saleRepository.getAllAddOnsWithSaleId(saleId);
     }
 
     public MutableLiveData<List<Sale>> getSalesLiveData() {
         return salesLiveData;
     }
+
     public void setSalesLiveData(MutableLiveData<List<Sale>> salesLiveData) {
         this.salesLiveData = salesLiveData;
     }
+
 
     private String formatDateString(int year, int month, int day) {
         Calendar calendar = GregorianCalendar.getInstance();
@@ -174,4 +240,17 @@ public class ManageSalesViewmodel extends ViewModel {
         calendar.clear();
         return formatted;
     }
+
+    public interface OnItemNotFoundInBranch {
+        void itemNotFound(Sale sale, List<Integer> itemIds);
+
+        void allItemsFound(CompleteSaleInfo completeSaleInfo, HashMap<Integer, Integer> itemsAndAmountToReduce);
+
+        void onError(Exception e);
+    }
+
+    public interface OnStockReductionError {
+        void errorOnItem(String itemName);
+    }
+
 }

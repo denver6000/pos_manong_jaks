@@ -19,6 +19,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 
 public class SalesRecyclerViewAdapter extends RecyclerView.Adapter<SalesRecyclerViewAdapter.ViewHolder> {
 
@@ -38,9 +40,10 @@ public class SalesRecyclerViewAdapter extends RecyclerView.Adapter<SalesRecycler
         return salesWithProducts;
     }
 
-    public void setSalesWithProducts(List<Sale> salesWithProducts) {
-        this.salesWithProducts = salesWithProducts;
-        notifyItemRangeChanged(0, salesWithProducts.size());
+    public void setSalesWithProducts(List<Sale> salesWithProducts)
+    {
+        this.salesWithProducts.addAll(salesWithProducts);
+        notifyItemRangeInserted(0, salesWithProducts.size());
     }
 
     public SalesRecyclerViewAdapter(View.OnClickListener onClickListener) {
@@ -85,6 +88,8 @@ public class SalesRecyclerViewAdapter extends RecyclerView.Adapter<SalesRecycler
             binding = SalesWithProductCardBinding.bind(itemView);
         }
     }
+
+
 
     private String formatDate(Date date) {
         SimpleDateFormat formatter = new SimpleDateFormat("d-MMMM-yyyy HH:mm:ss", Locale.getDefault());

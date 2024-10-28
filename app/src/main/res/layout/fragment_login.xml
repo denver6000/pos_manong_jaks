@@ -4,11 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools">
     <data>
         <variable
-            name="email"
-            type="String" />
-        <variable
-            name="password"
-            type="String" />
+            name="loginViewmodel"
+            type="com.denproj.posmanongjaks.viewModel.LoginFragmentViewmodel" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -68,7 +65,7 @@
             android:background="@drawable/custom_edit_text_background"
             android:hint="Email"
             android:padding="16dp"
-            android:text="@={email}"
+            android:text="@={loginViewmodel.observableEmail}"
             android:inputType="textEmailAddress"
             android:textColor="@android:color/black"
             android:textColorHint="@android:color/darker_gray"
@@ -87,7 +84,7 @@
             android:background="@drawable/custom_edit_text_background"
             android:hint="Password"
             android:padding="16dp"
-            android:text="@={password}"
+            android:text="@={loginViewmodel.observablePassword}"
             android:inputType="textPassword"
             android:drawableEnd="@drawable/ic_eye"
             android:textColor="@android:color/black"

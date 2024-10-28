@@ -3,25 +3,38 @@ package com.denproj.posmanongjaks.viewModel;
 import android.util.Log;
 
 import androidx.databinding.ObservableField;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.denproj.posmanongjaks.hilt.qualifier.FirebaseImpl;
 import com.denproj.posmanongjaks.model.Item;
 import com.denproj.posmanongjaks.model.Product;
 import com.denproj.posmanongjaks.repository.base.AddOnsRepository;
 import com.denproj.posmanongjaks.repository.base.ProductRepository;
 import com.denproj.posmanongjaks.util.OnDataReceived;
+import com.denproj.posmanongjaks.util.OnFetchFailed;
 import com.denproj.posmanongjaks.util.OnUpdateUI;
 
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import javax.inject.Inject;
+
+import dagger.hilt.android.lifecycle.HiltViewModel;
+
+@HiltViewModel
 public class SalesFragmentViewmodel extends ViewModel {
     ProductRepository productRepository;
     AddOnsRepository addOnsRepository;
 
-    public ObservableField<String> productName = new ObservableField<>("");
-    public ObservableField<String> productPrice = new ObservableField<>("");
+    @Inject
+    public SalesFragmentViewmodel(
+            @FirebaseImpl ProductRepository productRepository,
+            @FirebaseImpl AddOnsRepository addOnsRepository) {
+        this.productRepository = productRepository;
+        this.addOnsRepository = addOnsRepository;
+    }
 
     public void loadProductsOfBranch(String branchId, OnUpdateUI<List<Product>> listOnUpdateUI) {
         productRepository.fetchProductsFromBranch(branchId)
@@ -32,6 +45,13 @@ public class SalesFragmentViewmodel extends ViewModel {
                 });
     }
 
+    public MutableLiveData<List<Product>> observeProductListOfBranch(String branchId, OnFetchFailed onFetchFailed) {
+        return productRepository.observeProductList(branchId, onFetchFailed);
+    }
+
+    public MutableLiveData<List<Item>> observeAddOnsListOfBranch(String branchId, OnFetchFailed onFetchFailed) {
+        return addOnsRepository.observeAddOnsList(branchId, onFetchFailed);
+    }
 
     public void loadAddOns(String branchId, OnUpdateUI<List<Item>> onUpdateUI) {
         addOnsRepository.getAddOnsRepository(branchId, new OnDataReceived<List<Item>>() {

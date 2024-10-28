@@ -5,9 +5,12 @@ import android.os.Parcelable;
 
 import androidx.annotation.NonNull;
 import androidx.room.Entity;
+import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
 import com.google.firebase.firestore.IgnoreExtraProperties;
+
+import java.util.List;
 
 @Entity
 @IgnoreExtraProperties
@@ -17,6 +20,9 @@ public class User implements Parcelable {
     private String role;
     private String branch_location;
     private String username;
+
+    @Ignore
+    private List<String> branches;
     @PrimaryKey
     @NonNull
     private String user_id;
@@ -45,6 +51,14 @@ public class User implements Parcelable {
             return new User[size];
         }
     };
+
+    public List<String> getBranches() {
+        return branches;
+    }
+
+    public void setBranches(List<String> branches) {
+        this.branches = branches;
+    }
 
     public String getBranch_id() {
         return branch_id;

@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 
@@ -18,6 +19,7 @@ import com.denproj.posmanongjaks.hilt.qualifier.OnlineImpl;
 import com.denproj.posmanongjaks.model.Branch;
 import com.denproj.posmanongjaks.model.Item;
 import com.denproj.posmanongjaks.repository.base.ItemRepository;
+import com.denproj.posmanongjaks.util.OnFetchFailed;
 import com.denproj.posmanongjaks.util.OnUpdateUI;
 import com.denproj.posmanongjaks.viewModel.BranchFragmentViewmodel;
 import com.denproj.posmanongjaks.viewModel.HomeActivityViewmodel;
@@ -35,17 +37,7 @@ public class BranchFragment extends Fragment {
     HomeActivityViewmodel homeActivityViewmodel;
     BranchFragmentViewmodel branchFragmentViewmodel;
     MainViewModel mainViewModel;
-    ItemsRecyclerViewAdapter adapter = new ItemsRecyclerViewAdapter(itemId -> {
-
-    });
-
-    @OfflineImpl
-    @Inject
-    ItemRepository offlineItemRepository;
-
-    @OnlineImpl
-    @Inject
-    ItemRepository onlineItemRepository;
+    ItemsRecyclerViewAdapter adapter = new ItemsRecyclerViewAdapter();
 
     LoadingDialog loadingDialog;
     FragmentBranchBinding binding;
@@ -59,12 +51,6 @@ public class BranchFragment extends Fragment {
         this.mainViewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
 
         homeActivityViewmodel.sessionMutableLiveData.observe(getViewLifecycleOwner(), session -> {
-            if (session.isConnectionReachable()) {
-                branchFragmentViewmodel.setItemRepository(onlineItemRepository);
-            } else {
-                branchFragmentViewmodel.setItemRepository(offlineItemRepository);
-            }
-
             Branch branch = session.getBranch();
             if (session.getRole() == null || session.getBranch() == null) {
                 this.loadingDialog.dismiss();
@@ -83,18 +69,12 @@ public class BranchFragment extends Fragment {
 
 
     public void getRealtimeBranchStocks(String branchId) {
-        this.branchFragmentViewmodel.getRealtimeBranchStocks(branchId, new OnUpdateUI<List<Item>>() {
-            @Override
-            public void onSuccess(List<Item> result) {
-                adapter.onDataSetChanged(result);
-                loadingDialog.dismiss();
-                Toast.makeText(requireContext(), result.size() + " size", Toast.LENGTH_SHORT).show();
-            }
-
-            @Override
-            public void onFail(Exception e) {
-                Toast.makeText(requireContext(), e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
-            }
+        this.branchFragmentViewmodel.observeRealtimeBranchStocks(branchId, e -> {
+            Toast.makeText(requireContext(), "An error occurred " + e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+        }).observe(getViewLifecycleOwner(), result -> {
+            adapter.onDataSetChanged(result);
+            loadingDialog.dismiss();
+            Toast.makeText(requireContext(), result.size() + " size", Toast.LENGTH_SHORT).show();
         });
     }
 

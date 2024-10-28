@@ -17,11 +17,6 @@ import java.util.List;
 
 public class ItemsRecyclerViewAdapter extends RecyclerView.Adapter<ItemsRecyclerViewAdapter.ViewHolder> {
     List<Item> items = new ArrayList<>();
-    NavigateWithCardInfo navigate;
-
-    public ItemsRecyclerViewAdapter(NavigateWithCardInfo navigate) {
-        this.navigate = navigate;
-    }
 
     public void onDataSetChanged(List<Item> items) {
         this.items.clear();
@@ -56,10 +51,6 @@ public class ItemsRecyclerViewAdapter extends RecyclerView.Adapter<ItemsRecycler
             }
         });
 
-        binding.getRoot().setOnClickListener(view -> {
-            navigate.onNavigate(item.getItem_id() + "");
-        });
-
     }
 
     @Override
@@ -74,9 +65,4 @@ public class ItemsRecyclerViewAdapter extends RecyclerView.Adapter<ItemsRecycler
             this.binding = ItemCardWithStockBinding.bind(itemView);
         }
     }
-
-    public interface NavigateWithCardInfo {
-        void onNavigate(String itemId);
-    }
-
 }

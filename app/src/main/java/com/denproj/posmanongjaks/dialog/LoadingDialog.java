@@ -19,7 +19,9 @@ public class LoadingDialog extends DialogFragment {
         AlertDialog.Builder loadingDialogBuilder = new AlertDialog.Builder(requireContext());
         FragmentLoadingDialogBinding binding = FragmentLoadingDialogBinding.inflate(getLayoutInflater());
         loadingDialogBuilder.setCancelable(false);
+
         AlertDialog dialog = loadingDialogBuilder.create();
+        dialog.setCanceledOnTouchOutside(false);
         dialog.setView(binding.getRoot());
 
         return dialog;

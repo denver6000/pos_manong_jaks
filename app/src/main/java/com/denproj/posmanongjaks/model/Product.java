@@ -14,7 +14,6 @@ import java.util.HashMap;
 public class Product {
 
     @PrimaryKey
-    @NonNull
     private Long product_id;
     private String product_name;
     private String product_image_path;

@@ -15,10 +15,13 @@ public class SaleProduct {
     int saleItemId;
     Long product_id;
     int amount;
-    String sale_id;
+    Integer sale_id;
     String name;
 
-    public SaleProduct(Long product_id, int amount, String sale_id, String name) {
+    public SaleProduct() {
+    }
+
+    public SaleProduct(Long product_id, int amount, Integer sale_id, String name) {
         this.product_id = product_id;
         this.amount = amount;
         this.sale_id = sale_id;
@@ -49,11 +52,11 @@ public class SaleProduct {
         this.amount = amount;
     }
 
-    public String getSale_id() {
+    public Integer getSale_id() {
         return sale_id;
     }
 
-    public void setSale_id(String sale_id) {
+    public void setSale_id(Integer sale_id) {
         this.sale_id = sale_id;
     }
 

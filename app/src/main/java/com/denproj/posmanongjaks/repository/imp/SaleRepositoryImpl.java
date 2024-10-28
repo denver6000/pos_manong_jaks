@@ -9,6 +9,8 @@ import com.denproj.posmanongjaks.model.Sale;
 import com.denproj.posmanongjaks.model.SaleItem;
 import com.denproj.posmanongjaks.model.SaleProduct;
 import com.denproj.posmanongjaks.repository.base.SaleRepository;
+import com.denproj.posmanongjaks.repository.firebaseImpl.FirebaseSaleRepository;
+import com.denproj.posmanongjaks.room.dao.SalesDao;
 import com.denproj.posmanongjaks.util.OnDataReceived;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -21,28 +23,31 @@ import kotlin.NotImplementedError;
 
 public class SaleRepositoryImpl implements SaleRepository {
 
-    public static final String SALES_RECORD_PATH = "sales_record_t_2";
+    public static final String SALES_RECORD_PATH = "sales_record";
+
 
     FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
+
+
     @Override
-    public void insertSaleRecord(String branchId, HashMap<Long, ProductWrapper> selectedItemToSel, HashMap<Item, Integer> addOns, int year, int month, int day, Double total, Double amountToBePaid, OnDataReceived<CompleteSaleInfo> onDataReceived) {
+    public void processSale(String branchId, HashMap<Long, ProductWrapper> selectedItemToSel, HashMap<Item, Integer> addOns, int year, int month, int day, Double total, Double amountToBePaid, FirebaseSaleRepository.OnSaleStatus onSaleStatus) {
         throw new NotImplementedError();
     }
 
     @Override
-    public LiveData<List<SaleItem>> getAllAddOnsWithSaleId(String saleId) {
+    public LiveData<List<SaleItem>> getAllAddOnsWithSaleId(Integer saleId) {
         return null;
     }
 
     @Override
-    public LiveData<List<SaleProduct>> getAllProductsWithSaleId(String saleId) {
+    public LiveData<List<SaleProduct>> getAllProductsWithSaleId(Integer saleId) {
         return null;
     }
 
     @Override
     public CompletableFuture<List<Sale>> getAllRecordedSalesOnBranch(String branchId) {
         CompletableFuture<List<Sale>> completableFuture = new CompletableFuture<>();
-        firebaseDatabase.getReference(SALES_RECORD_PATH + "/" + branchId).get().addOnSuccessListener(dataSnapshot -> {
+        firebaseDatabase.getReference(SALES_RECORD_PATH + "/").orderByChild("branchId").equalTo(branchId).get().addOnSuccessListener(dataSnapshot -> {
             List<Sale> sales = new ArrayList<>();
             dataSnapshot.getChildren().forEach(dataSnapshot1 -> {
                 sales.add(dataSnapshot1.getValue(Sale.class));
@@ -53,13 +58,22 @@ public class SaleRepositoryImpl implements SaleRepository {
     }
 
     @Override
-    public List<SaleItem> getAllSaleItemBySaleIdSync(String saleId) {
+    public List<SaleItem> getAllSaleItemBySaleIdSync(Integer saleId) {
         return null;
     }
 
     @Override
-    public List<SaleProduct> getAllSaleProductBySaleIdSync(String saleId) {
+    public List<SaleProduct> getAllSaleProductBySaleIdSync(Integer saleId) {
         return null;
+    }
+
+    @Override
+    public void removeLocalSaleById(Integer saleId) {
+    }
+
+    @Override
+    public void clearSale() {
+        throw new NotImplementedError();
     }
 
 

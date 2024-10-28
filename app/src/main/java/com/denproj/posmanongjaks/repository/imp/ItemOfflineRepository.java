@@ -24,18 +24,8 @@ public class ItemOfflineRepository implements ItemRepository {
     }
 
     @Override
-    public void fetchItemsFromGlobal(OnDataReceived<List<Item>> onDataReceived) {
-
-    }
-
-    @Override
     public CompletableFuture<List<Item>> fetchItemsFromBranch(String branchId) {
         return CompletableFuture.supplyAsync(() -> itemsDao.getAllItems());
-    }
-
-    @Override
-    public void saveSelectionToBranchList(String branchId, HashMap<String, Item> selectedItemsMap, OnDataReceived<Void> onComplete) {
-        throw new NotImplementedError();
     }
 
     @Override

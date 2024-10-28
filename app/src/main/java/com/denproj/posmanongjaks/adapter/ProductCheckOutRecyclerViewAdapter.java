@@ -44,20 +44,17 @@ public class ProductCheckOutRecyclerViewAdapter extends RecyclerView.Adapter<Pro
         ItemCheckoutCardLayoutBinding binding = holder.binding;
         binding.setProductName(productWrapper.getProduct().getProduct_name());
 
-        if (productWrapper != null) {
-
-            binding.incrementAmount.setOnClickListener(view -> {
-
-                incrementAmountAndUpdateTotalPrice(productWrapper, binding);
-            });
-
-            binding.decrementAmount.setOnClickListener(view -> {
-
-                decrementAmountAndUpdateTotalPrice(holder.getAdapterPosition(), productWrapper, binding);
-            });
-
+        binding.incrementAmount.setOnClickListener(view -> {
             incrementAmountAndUpdateTotalPrice(productWrapper, binding);
-        }
+        });
+
+        binding.decrementAmount.setOnClickListener(view -> {
+            decrementAmountAndUpdateTotalPrice(holder.getAdapterPosition(), productWrapper, binding);
+        });
+
+        updatePriceBasedOnAmount(productWrapper, binding);
+
+
     }
 
     public double getTotalPrice () {
@@ -104,6 +101,11 @@ public class ProductCheckOutRecyclerViewAdapter extends RecyclerView.Adapter<Pro
 
     public void incrementAmountAndUpdateTotalPrice(ProductWrapper productWrapper, ItemCheckoutCardLayoutBinding binding) {
         productWrapper.setAddOnAmount(productWrapper.getAddOnAmount() + 1);
+        binding.setAddOnAmount(productWrapper.getAddOnAmount());
+        onTotalAmountChanged.onChanged(getTotalPrice());
+    }
+
+    public void updatePriceBasedOnAmount(ProductWrapper productWrapper, ItemCheckoutCardLayoutBinding binding) {
         binding.setAddOnAmount(productWrapper.getAddOnAmount());
         onTotalAmountChanged.onChanged(getTotalPrice());
     }

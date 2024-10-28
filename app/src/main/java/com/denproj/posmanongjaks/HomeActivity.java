@@ -1,6 +1,8 @@
 package com.denproj.posmanongjaks;
 
-import android.content.DialogInterface;
+import static com.denproj.posmanongjaks.repository.firebaseImpl.FirebaseItemRepository.PATH_TO_ITEMS_LIST;
+import static com.denproj.posmanongjaks.repository.firebaseImpl.FirebaseProductRepository.PATH_TO_BRANCH_PRODUCTS;
+
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 
@@ -8,9 +10,9 @@ import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.lifecycle.MutableLiveData;
@@ -29,10 +31,17 @@ import com.denproj.posmanongjaks.repository.base.RoleRepository;
 import com.denproj.posmanongjaks.session.Session;
 import com.denproj.posmanongjaks.viewModel.HomeActivityViewmodel;
 import com.google.android.material.navigation.NavigationView;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
 import android.Manifest;
+import android.widget.Toast;
 
 import java.util.Map;
-import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import javax.inject.Inject;
 
@@ -74,12 +83,13 @@ public class HomeActivity extends AppCompatActivity {
     @OfflineImpl
     RoleRepository roleOfflineRepository;
 
+    MutableLiveData<Session> sessionMutableLiveData;
+
     String[] permissions = new String[] {
             Manifest.permission.BLUETOOTH,
             Manifest.permission.BLUETOOTH_ADMIN,
             Manifest.permission.BLUETOOTH_CONNECT,
             Manifest.permission.BLUETOOTH_SCAN};
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,25 +97,37 @@ public class HomeActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         ActivityHomeBinding binding = ActivityHomeBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-
-        HomeActivityArgs args = HomeActivityArgs.fromBundle(getIntent().getExtras());
-        Session session = new Session(args.getBranchInfo(), args.getUserInfo(), args.getRoleInfo());
-        session.setConnectionReachable(args.getIsConnectionReachable());
         this.homeActivityViewmodel = new ViewModelProvider(this).get(HomeActivityViewmodel.class);
-        if (session.isConnectionReachable()) {
-            this.homeActivityViewmodel.setBranchRepository(branchOnlineRepository);
-            this.homeActivityViewmodel.setRoleRepository(roleOnlineRepository);
-        } else {
-            this.homeActivityViewmodel.setBranchRepository(branchOfflineRepository);
-            this.homeActivityViewmodel.setRoleRepository(roleOfflineRepository);
-        }
 
         if (!hasPermissions()) {
             requestBluetoothPerms.launch(permissions);
         }
 
-        MutableLiveData<Session> sessionMutableLiveData = this.homeActivityViewmodel.sessionMutableLiveData;
-        sessionMutableLiveData.setValue(session);
+
+
+        this.sessionMutableLiveData = this.homeActivityViewmodel.sessionMutableLiveData;
+        homeActivityViewmodel.getSession().thenAccept(session -> {
+            DatabaseReference connectedRef = FirebaseDatabase.getInstance().getReference("/.info/connected");
+            connectedRef.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    boolean connected = snapshot.getValue(Boolean.class);
+                    session.setConnectionReachable(connected);
+                    loadSession(session);
+                    Toast.makeText(HomeActivity.this, "You Are Online", Toast.LENGTH_SHORT).show();
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    session.setConnectionReachable(false);
+                    loadSession(session);
+                    Toast.makeText(HomeActivity.this, "Error Detecting network status", Toast.LENGTH_SHORT).show();
+                }
+            });
+
+
+
+        });
 
         DrawerLayout layout = binding.main;
         NavigationView navigationView = binding.navView;
@@ -114,11 +136,10 @@ public class HomeActivity extends AppCompatActivity {
         appBarConfiguration = new AppBarConfiguration.Builder(
                 R.id.stock_view,
                 R.id.sales_view,
-                R.id.manage_sales,
                 R.id.salesHistoryFragment,
                 R.id.settings).setOpenableLayout(layout).build();
 
-        NavController navController = ((NavHostFragment)getSupportFragmentManager().findFragmentById(R.id.fragmentContainerView2)).getNavController();
+        NavController navController = ((NavHostFragment)getSupportFragmentManager().findFragmentById(R.id.homeFragmentContainerView)).getNavController();
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(navigationView, navController);
     }
@@ -133,12 +154,12 @@ public class HomeActivity extends AppCompatActivity {
     }
     @Override
     public boolean onSupportNavigateUp() {
-        NavController navController = Navigation.findNavController(this, R.id.fragmentContainerView2);
+        NavController navController = Navigation.findNavController(this, R.id.homeFragmentContainerView);
         return NavigationUI.navigateUp(navController, appBarConfiguration)
                 || super.onSupportNavigateUp();
     }
 
-    public AlertDialog showDialog(String permission) {
+    private AlertDialog showDialog(String permission) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setPositiveButton("Ok", (dialogInterface, i) -> {
 
@@ -147,6 +168,18 @@ public class HomeActivity extends AppCompatActivity {
         builder.setMessage("It seems that you have rejected bluetooth permissions which prevents the app from contacting a printer.");
 
         return builder.create();
+    }
+
+    private void loadSession(Session session) {
+        sessionMutableLiveData.setValue(session);
+
+        String branchId = session.getBranch().getBranch_id();
+
+        DatabaseReference itemsOnBranches = FirebaseDatabase.getInstance().getReference(PATH_TO_ITEMS_LIST + "/" + branchId);
+        itemsOnBranches.keepSynced(true);
+
+        DatabaseReference productsOnBranches = FirebaseDatabase.getInstance().getReference(PATH_TO_BRANCH_PRODUCTS + "/" + branchId);
+        productsOnBranches.keepSynced(true);
     }
 
 }

@@ -8,24 +8,28 @@
     tools:context=".PrintActivity"
     android:orientation="vertical">
 
-    <Button
+    <TextView
         android:id="@+id/name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Button" />
+        android:text="Name of Printer" />
 
     <Button
-        android:id="@+id/printName"
+        android:id="@+id/printData"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Print" />
+        android:text="Print Data" />
 
-    <EditText
-        android:id="@+id/editTextText"
+    <Button
+        android:id="@+id/pritntWithDefaultPrinter"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:ems="10"
-        android:inputType="text"
-        android:text="Name" />
+        android:text="Print With Connected Printer" />
+
+    <Button
+        android:id="@+id/chooseDevice"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Pick Device" />
 
 </LinearLayout>

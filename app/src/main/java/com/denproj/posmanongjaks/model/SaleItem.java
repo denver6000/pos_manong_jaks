@@ -14,7 +14,7 @@ public class SaleItem {
     @PrimaryKey(autoGenerate = true)
     int saleItemId;
     int item_id;
-    String saleId;
+    Integer saleId;
     int amount;
 
     String itemName;
@@ -22,7 +22,7 @@ public class SaleItem {
     public SaleItem() {
     }
 
-    public SaleItem(int item_id, String saleId, int amount, String itemName) {
+    public SaleItem(int item_id, Integer saleId, int amount, String itemName) {
         this.item_id = item_id;
         this.saleId = saleId;
         this.amount = amount;
@@ -45,11 +45,11 @@ public class SaleItem {
         this.item_id = item_id;
     }
 
-    public String getSaleId() {
+    public Integer getSaleId() {
         return saleId;
     }
 
-    public void setSaleId(String saleId) {
+    public void setSaleId(Integer saleId) {
         this.saleId = saleId;
     }
 

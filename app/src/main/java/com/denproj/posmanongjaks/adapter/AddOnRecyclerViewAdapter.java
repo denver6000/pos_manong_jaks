@@ -12,17 +12,15 @@ import com.denproj.posmanongjaks.databinding.AddOnLayoutBinding;
 import com.denproj.posmanongjaks.model.Item;
 import com.denproj.posmanongjaks.util.ImagePathBinder;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 public class AddOnRecyclerViewAdapter extends RecyclerView.Adapter<AddOnRecyclerViewAdapter.ViewHolder> {
-    List<Item> items;
-    HashMap<Item, Integer> itemsMap;
+    List<Item> items = new ArrayList<>();
+    HashMap<Item, Integer> itemsMap = new HashMap<>();
 
-    public AddOnRecyclerViewAdapter(List<Item> addOns) {
-        this.items = addOns;
-        itemsMap = new HashMap<>();
-    }
+
 
     @NonNull
     @Override
@@ -51,6 +49,12 @@ public class AddOnRecyclerViewAdapter extends RecyclerView.Adapter<AddOnRecycler
         addOnLayoutBinding.addAddOn.setOnClickListener(view -> {
             itemsMap.put(item, 1);
         });
+    }
+
+    public void refreshAdapter(List<Item> addOns) {
+        items.clear();
+        items.addAll(addOns);
+        notifyDataSetChanged();
     }
 
     public HashMap<Item, Integer> getItemsMap() {

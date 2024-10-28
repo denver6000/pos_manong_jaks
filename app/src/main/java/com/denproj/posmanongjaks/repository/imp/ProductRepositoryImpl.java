@@ -8,7 +8,9 @@ import com.denproj.posmanongjaks.model.Item;
 import com.denproj.posmanongjaks.model.Product;
 import com.denproj.posmanongjaks.model.Recipe;
 import com.denproj.posmanongjaks.repository.base.ProductRepository;
+import com.denproj.posmanongjaks.room.entity.Items;
 import com.denproj.posmanongjaks.util.OnDataReceived;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -33,18 +35,35 @@ public class ProductRepositoryImpl implements ProductRepository {
     public CompletableFuture<List<Product>> fetchProductsFromBranch(String branchId) {
         CompletableFuture<List<Product>> fetchProductsCompletableFuture = new CompletableFuture<>();
         FirebaseDatabase realtimeDatabase = FirebaseDatabase.getInstance();
+        // realtimeDatabase.getReference("")
         realtimeDatabase.getReference(PATH_TO_BRANCH_PRODUCTS + "/" + branchId)
                 .get()
                 .addOnSuccessListener(dataSnapshot -> {
                     List<Product> products = new ArrayList<>();
                     dataSnapshot.getChildren().forEach(dataSnapshot1 -> {
-                        products.add(dataSnapshot1.getValue(Product.class));
+                        Product product = dataSnapshot1.getValue(Product.class);
+                        products.add(product);
+
                     });
                     fetchProductsCompletableFuture.complete(products);
                 }).addOnFailureListener(fetchProductsCompletableFuture::completeExceptionally);
 
         return fetchProductsCompletableFuture;
+    }
 
+    public CompletableFuture<HashMap<Integer, Item>> getRecipeOfAProduct(String productId) {
+        CompletableFuture<HashMap<Integer, Item>> completableFuture = new CompletableFuture<>();
+        FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
+        firebaseDatabase.getReference(PATH_TO_BRANCH_PRODUCTS + "/" + productId + "/recipes")
+                .get()
+                .addOnSuccessListener(recipes -> {
+                    for (DataSnapshot recipe : recipes.getChildren()) {
+                        String itemKey = recipe.getKey();
+                        Integer stockAmount = recipe.child("amount").getValue(Integer.class);
+
+                    }
+                });
+        return completableFuture;
     }
 
     @Override

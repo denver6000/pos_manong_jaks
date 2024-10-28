@@ -20,6 +20,7 @@ import com.denproj.posmanongjaks.model.CompleteSaleInfo;
 import com.denproj.posmanongjaks.model.Item;
 import com.denproj.posmanongjaks.model.Role;
 import com.denproj.posmanongjaks.model.User;
+import com.denproj.posmanongjaks.repository.firebaseImpl.FirebaseSaleRepository;
 import com.denproj.posmanongjaks.session.Session;
 import com.denproj.posmanongjaks.util.OnDataReceived;
 import com.denproj.posmanongjaks.viewModel.CheckOutDialogViewmodel;
@@ -39,17 +40,15 @@ public class CheckOutDialogFragment extends DialogFragment {
     private AddOnCheckOutRecyclerViewAdapter addOnsAdapter;
     private final OnSaleFinished onSaleFinished;
 
-    private Branch branch;
-    private Session session;
+    private final Branch branch;
 
-    public CheckOutDialogFragment(Session session, HashMap<Long, ProductWrapper> selectedItems, HashMap<Item, Integer> selectedAddOns, OnSaleFinished onSaleFinished) {
+    public CheckOutDialogFragment(Branch branch, HashMap<Long, ProductWrapper> selectedItems, HashMap<Item, Integer> selectedAddOns, OnSaleFinished onSaleFinished) {
         this.selectedItems = selectedItems;
         this.selectedAddOns = selectedAddOns;
         this.onSaleFinished = onSaleFinished;
 
+        this.branch = branch;
 
-        this.branch = session.getBranch();
-        this.session = session;
     }
 
     @NonNull
@@ -60,10 +59,12 @@ public class CheckOutDialogFragment extends DialogFragment {
         AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(requireContext());
 
         this.binding = FragmentCheckOutDialogBinding.inflate(getLayoutInflater());
+
         this.productsAdapter = new ProductCheckOutRecyclerViewAdapter(selectedItems, new ArrayList<>(selectedItems.keySet()), total -> {
             Double sumTotal = addOnsAdapter.getTotal() + productsAdapter.getTotalPrice();
             binding.setTotalAmount(sumTotal);
         });
+
         this.addOnsAdapter = new AddOnCheckOutRecyclerViewAdapter(selectedAddOns, total -> {
             Double sumTotal = addOnsAdapter.getTotal() + productsAdapter.getTotalPrice();
             binding.setTotalAmount(sumTotal);
@@ -97,18 +98,15 @@ public class CheckOutDialogFragment extends DialogFragment {
             int year = calendar.get(GregorianCalendar.YEAR);
             int dayOfMonth = calendar.get(GregorianCalendar.DAY_OF_MONTH);
 
-            viewmodel.sell(branch.getBranch_id(), productsAdapter.getSelectedProducts(), addOnsAdapter.getSelectedAddOns(), year, month, dayOfMonth, total, paidAmount.doubleValue(), new OnDataReceived<CompleteSaleInfo>() {
+            viewmodel.sell(branch.getBranch_id(), productsAdapter.getSelectedProducts(), addOnsAdapter.getSelectedAddOns(), year, month, dayOfMonth, total, paidAmount.doubleValue(), new FirebaseSaleRepository.OnSaleStatus() {
                 @Override
-                public void onSuccess(CompleteSaleInfo result) {
-                    onSaleFinished.onSuccess(paidAmount.doubleValue() - total);
-                    new ShowReceiptDialogFragment(
-                            viewmodel.printReceipt(requireContext(), result, CheckOutDialogFragment.this.session)
-                    ).show(getParentFragmentManager(), "");
+                public void success(CompleteSaleInfo completeSaleInfo) {
+                    onSaleFinished.onSuccess(completeSaleInfo);
                 }
 
                 @Override
-                public void onFail(Exception e) {
-                    onSaleFinished.onFail();
+                public void failed(Exception fatalException, HashMap<String, String> itemNameAndErrorMessage) {
+                    onSaleFinished.onFail(fatalException, itemNameAndErrorMessage);
                 }
             });
         });
@@ -128,13 +126,9 @@ public class CheckOutDialogFragment extends DialogFragment {
     public interface OnTotalAmountChanged {
         void onChanged(Double total);
     }
-    
-    
 
     public interface OnSaleFinished {
-        void onSuccess(Double change);
-        void onFail();
+        void onSuccess(CompleteSaleInfo completeSaleInfo);
+        void onFail(Exception e, HashMap<String, String> itemNameAndErrors);
     }
-
-
 }
