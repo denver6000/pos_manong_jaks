@@ -6,20 +6,10 @@
         android:title="Inventories"
         android:icon="@drawable/ic_inventory" />
 
-<!--    <item-->
-<!--        android:id="@+id/menus"-->
-<!--        android:title="Menus"-->
-<!--        android:icon="@drawable/ic_menus" /> &lt;!&ndash; New Menu item &ndash;&gt;-->
-
-<!--    <item-->
-<!--        android:id="@+id/sales_view"-->
-<!--        android:title="Sales"-->
-<!--        android:icon="@drawable/ic_sales" />-->
-
     <item
         android:id="@+id/salesHistoryFragment"
         android:title="Sale History"
-        android:icon="@drawable/ic_pos" />
+        android:icon="@drawable/ic_manage_stocks" />
 
     <item
         android:id="@+id/sales_view"
