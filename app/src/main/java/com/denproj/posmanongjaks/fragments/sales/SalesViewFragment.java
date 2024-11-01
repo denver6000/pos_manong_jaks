@@ -1,53 +1,33 @@
 package com.denproj.posmanongjaks.fragments.sales;
 
 import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.dantsu.escposprinter.textparser.PrinterTextParserImg;
 import com.denproj.posmanongjaks.R;
 import com.denproj.posmanongjaks.adapter.AddOnRecyclerViewAdapter;
 import com.denproj.posmanongjaks.adapter.ProductsRecyclerViewAdapter;
 import com.denproj.posmanongjaks.databinding.FragmentSalesViewBinding;
 import com.denproj.posmanongjaks.dialog.CheckOutDialogFragment;
 import com.denproj.posmanongjaks.dialog.LoadingDialog;
-import com.denproj.posmanongjaks.hilt.qualifier.OfflineImpl;
-import com.denproj.posmanongjaks.hilt.qualifier.OnlineImpl;
 import com.denproj.posmanongjaks.model.Branch;
 import com.denproj.posmanongjaks.model.CompleteSaleInfo;
-import com.denproj.posmanongjaks.model.Item;
-import com.denproj.posmanongjaks.model.Product;
-import com.denproj.posmanongjaks.model.SaleItem;
-import com.denproj.posmanongjaks.model.SaleProduct;
-import com.denproj.posmanongjaks.repository.base.AddOnsRepository;
-import com.denproj.posmanongjaks.repository.base.ProductRepository;
 import com.denproj.posmanongjaks.session.Session;
-import com.denproj.posmanongjaks.util.OnFetchFailed;
-import com.denproj.posmanongjaks.util.OnUpdateUI;
 import com.denproj.posmanongjaks.viewModel.HomeActivityViewmodel;
 import com.denproj.posmanongjaks.viewModel.MainViewModel;
 import com.denproj.posmanongjaks.viewModel.SalesFragmentViewmodel;
 
 import java.util.HashMap;
-import java.util.List;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-
-import javax.inject.Inject;
 
 import dagger.hilt.android.AndroidEntryPoint;
 

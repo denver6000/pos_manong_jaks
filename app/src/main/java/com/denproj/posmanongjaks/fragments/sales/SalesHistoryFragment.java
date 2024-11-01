@@ -1,6 +1,7 @@
 package com.denproj.posmanongjaks.fragments.sales;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,13 +16,11 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import com.denproj.posmanongjaks.adapter.SalesRecyclerViewAdapter;
 import com.denproj.posmanongjaks.databinding.FragmentSalesHistoryBinding;
 import com.denproj.posmanongjaks.model.Sale;
-import com.denproj.posmanongjaks.session.Session;
+import com.denproj.posmanongjaks.util.OnFetchFailed;
 import com.denproj.posmanongjaks.viewModel.HomeActivityViewmodel;
 import com.denproj.posmanongjaks.viewModel.SaleHistoryViewModel;
 
 import java.util.List;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 public class SalesHistoryFragment extends Fragment {
 
@@ -41,15 +40,17 @@ public class SalesHistoryFragment extends Fragment {
 
         homeActivityViewmodel.sessionMutableLiveData.observe(getViewLifecycleOwner(), session -> {
             if (session.isConnectionReachable()) {
-                viewModel.getAllSalesRecord(session.getBranch().getBranch_id())
-                        .thenAcceptAsync(sales -> adapter.setSalesWithProducts(sales), ContextCompat.getMainExecutor(requireContext()))
-                        .exceptionally(throwable -> {
-                            Toast.makeText(requireContext(), throwable.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
-                            return null;
-                        });
+                Toast.makeText(requireContext(), "These are live sale data.", Toast.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(requireContext(), "To view all sales history, please enable internet connection.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), "These are only cached sale data.", Toast.LENGTH_SHORT).show();
             }
+            viewModel.getAllSalesRecord(session.getBranch().getBranch_id(), new OnFetchFailed() {
+                @Override
+                public void onFetchFailed(Exception e) {
+                    Log.e("SalesHistoryFragment", e.getMessage());
+                    Toast.makeText(requireContext(), "Something went wrong", Toast.LENGTH_SHORT).show();
+                }
+            }).observe(getViewLifecycleOwner(), sales -> adapter.setSalesWithProducts(sales));
         });
         return binding.getRoot();
     }

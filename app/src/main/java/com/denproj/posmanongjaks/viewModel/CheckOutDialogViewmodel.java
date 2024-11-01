@@ -3,13 +3,10 @@ package com.denproj.posmanongjaks.viewModel;
 import androidx.lifecycle.ViewModel;
 
 import com.denproj.posmanongjaks.hilt.qualifier.FirebaseImpl;
-import com.denproj.posmanongjaks.hilt.qualifier.OfflineImpl;
-import com.denproj.posmanongjaks.model.ProductWrapper;
-import com.denproj.posmanongjaks.model.CompleteSaleInfo;
 import com.denproj.posmanongjaks.model.Item;
+import com.denproj.posmanongjaks.model.ProductWrapper;
 import com.denproj.posmanongjaks.repository.base.SaleRepository;
 import com.denproj.posmanongjaks.repository.firebaseImpl.FirebaseSaleRepository;
-import com.denproj.posmanongjaks.util.OnDataReceived;
 
 import java.util.HashMap;
 

@@ -2,12 +2,9 @@ package com.denproj.posmanongjaks.repository.firebaseImpl;
 
 import com.denproj.posmanongjaks.model.User;
 import com.denproj.posmanongjaks.repository.base.UserRepository;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.concurrent.CompletableFuture;
 

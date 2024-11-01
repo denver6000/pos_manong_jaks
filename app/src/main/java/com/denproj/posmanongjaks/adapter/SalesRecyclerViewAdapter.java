@@ -19,8 +19,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Supplier;
 
 public class SalesRecyclerViewAdapter extends RecyclerView.Adapter<SalesRecyclerViewAdapter.ViewHolder> {
 
@@ -42,6 +40,7 @@ public class SalesRecyclerViewAdapter extends RecyclerView.Adapter<SalesRecycler
 
     public void setSalesWithProducts(List<Sale> salesWithProducts)
     {
+        this.salesWithProducts.clear();
         this.salesWithProducts.addAll(salesWithProducts);
         notifyItemRangeInserted(0, salesWithProducts.size());
     }

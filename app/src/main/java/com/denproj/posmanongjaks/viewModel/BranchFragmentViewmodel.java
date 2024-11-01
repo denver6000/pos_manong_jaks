@@ -7,7 +7,6 @@ import com.denproj.posmanongjaks.hilt.qualifier.FirebaseImpl;
 import com.denproj.posmanongjaks.model.Item;
 import com.denproj.posmanongjaks.repository.base.ItemRepository;
 import com.denproj.posmanongjaks.util.OnFetchFailed;
-import com.denproj.posmanongjaks.util.OnUpdateUI;
 
 import java.util.List;
 

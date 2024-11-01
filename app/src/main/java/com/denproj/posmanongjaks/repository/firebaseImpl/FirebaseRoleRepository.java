@@ -2,7 +2,6 @@ package com.denproj.posmanongjaks.repository.firebaseImpl;
 
 import com.denproj.posmanongjaks.model.Role;
 import com.denproj.posmanongjaks.repository.base.RoleRepository;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.concurrent.CompletableFuture;

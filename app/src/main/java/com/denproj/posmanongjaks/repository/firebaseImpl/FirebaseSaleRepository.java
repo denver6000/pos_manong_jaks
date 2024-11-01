@@ -1,8 +1,8 @@
 package com.denproj.posmanongjaks.repository.firebaseImpl;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 
 import com.denproj.posmanongjaks.model.CompleteSaleInfo;
 import com.denproj.posmanongjaks.model.Item;
@@ -10,17 +10,13 @@ import com.denproj.posmanongjaks.model.ProductWrapper;
 import com.denproj.posmanongjaks.model.Sale;
 import com.denproj.posmanongjaks.model.SaleItem;
 import com.denproj.posmanongjaks.model.SaleProduct;
-import com.denproj.posmanongjaks.model.StockAmountAndAmountToReduce;
-import com.denproj.posmanongjaks.repository.base.ItemRepository;
 import com.denproj.posmanongjaks.repository.base.SaleRepository;
+import com.denproj.posmanongjaks.util.OnFetchFailed;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.MutableData;
-import com.google.firebase.database.Transaction;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 public class FirebaseSaleRepository implements SaleRepository {
     public static final String PATH_TO_SALE_RECORD = "sales_record";
@@ -42,7 +39,6 @@ public class FirebaseSaleRepository implements SaleRepository {
                     public void onSuccess() {
                         Sale saleRecord = new Sale();
                         saleRecord.setSaleId(Integer.valueOf(generateId()));
-                        //saleRecord.setSaleId(EfficientRandomStringGenerator.generateRandomTenDigitString());
                         Double change = amountToBePaid - total;
                         saleRecord.setChange(change);
                         saleRecord.setTotal(total);
@@ -143,7 +139,7 @@ public class FirebaseSaleRepository implements SaleRepository {
         sale.setSoldProducts(saleProducts);
         sale.setSoldItems(saleItems);
         onSaleStatus.success(new CompleteSaleInfo(sale, saleItems, saleProducts));
-        firebaseDatabase.getReference(PATH_TO_SALE_RECORD + "/" + sale.getSaleId()).setValue(sale);
+        firebaseDatabase.getReference(PATH_TO_SALE_RECORD + "/" + sale.getBranchId() + "/" + sale.getSaleId()).setValue(sale);
     }
 
     @Override
@@ -157,28 +153,17 @@ public class FirebaseSaleRepository implements SaleRepository {
     }
     @Override
 
-    public CompletableFuture<List<Sale>> getAllRecordedSalesOnBranch(String branchId) {
-        return null;
-    }
-
-    @Override
-    public List<SaleItem> getAllSaleItemBySaleIdSync(Integer saleId) {
-        return null;
-    }
-
-    @Override
-    public List<SaleProduct> getAllSaleProductBySaleIdSync(Integer saleId) {
-        return null;
-    }
-
-    @Override
-    public void removeLocalSaleById(Integer saleId) {
-
-    }
-
-    @Override
-    public void clearSale() {
-
+    public LiveData<List<Sale>> getAllRecordedSalesOnBranch(String branchId, OnFetchFailed onFetchFailed) {
+        MutableLiveData<List<Sale>> branchSalesRecords = new MutableLiveData<>();
+        List<Sale> recordedSales = new ArrayList<>();
+        firebaseDatabase.getReference(PATH_TO_SALE_RECORD + "/" + branchId).get().addOnSuccessListener(dataSnapshot -> {
+            dataSnapshot.getChildren().forEach(saleSnapshot -> {
+                Sale sale = saleSnapshot.getValue(Sale.class);
+                recordedSales.add(sale);
+            });
+            branchSalesRecords.setValue(recordedSales);
+        }).addOnFailureListener(onFetchFailed::onFetchFailed);
+        return branchSalesRecords;
     }
 
     public String generateId() {

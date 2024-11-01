@@ -5,7 +5,6 @@ import androidx.lifecycle.MutableLiveData;
 
 import com.denproj.posmanongjaks.model.Item;
 import com.denproj.posmanongjaks.repository.base.AddOnsRepository;
-import com.denproj.posmanongjaks.util.OnDataReceived;
 import com.denproj.posmanongjaks.util.OnFetchFailed;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -15,8 +14,6 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import kotlin.NotImplementedError;
 
 public class FirebaseAddonRepository implements AddOnsRepository {
     FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
@@ -46,10 +43,5 @@ public class FirebaseAddonRepository implements AddOnsRepository {
             }
         });
         return mutableLiveData;
-    }
-
-    @Override
-    public void getAddOnsRepository(String branchId, OnDataReceived<List<Item>> onDataReceived) {
-        throw new NotImplementedError();
     }
 }

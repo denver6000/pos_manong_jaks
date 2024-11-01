@@ -15,14 +15,10 @@ import com.denproj.posmanongjaks.adapter.AddOnCheckOutRecyclerViewAdapter;
 import com.denproj.posmanongjaks.adapter.ProductCheckOutRecyclerViewAdapter;
 import com.denproj.posmanongjaks.databinding.FragmentCheckOutDialogBinding;
 import com.denproj.posmanongjaks.model.Branch;
-import com.denproj.posmanongjaks.model.ProductWrapper;
 import com.denproj.posmanongjaks.model.CompleteSaleInfo;
 import com.denproj.posmanongjaks.model.Item;
-import com.denproj.posmanongjaks.model.Role;
-import com.denproj.posmanongjaks.model.User;
+import com.denproj.posmanongjaks.model.ProductWrapper;
 import com.denproj.posmanongjaks.repository.firebaseImpl.FirebaseSaleRepository;
-import com.denproj.posmanongjaks.session.Session;
-import com.denproj.posmanongjaks.util.OnDataReceived;
 import com.denproj.posmanongjaks.viewModel.CheckOutDialogViewmodel;
 
 import java.util.ArrayList;

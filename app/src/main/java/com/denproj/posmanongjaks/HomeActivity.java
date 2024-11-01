@@ -3,8 +3,10 @@ package com.denproj.posmanongjaks;
 import static com.denproj.posmanongjaks.repository.firebaseImpl.FirebaseItemRepository.PATH_TO_ITEMS_LIST;
 import static com.denproj.posmanongjaks.repository.firebaseImpl.FirebaseProductRepository.PATH_TO_BRANCH_PRODUCTS;
 
+import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultCallback;
@@ -24,10 +26,6 @@ import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
 import com.denproj.posmanongjaks.databinding.ActivityHomeBinding;
-import com.denproj.posmanongjaks.hilt.qualifier.OfflineImpl;
-import com.denproj.posmanongjaks.hilt.qualifier.OnlineImpl;
-import com.denproj.posmanongjaks.repository.base.BranchRepository;
-import com.denproj.posmanongjaks.repository.base.RoleRepository;
 import com.denproj.posmanongjaks.session.Session;
 import com.denproj.posmanongjaks.viewModel.HomeActivityViewmodel;
 import com.google.android.material.navigation.NavigationView;
@@ -37,13 +35,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import android.Manifest;
-import android.widget.Toast;
-
 import java.util.Map;
-import java.util.function.Consumer;
-
-import javax.inject.Inject;
 
 import dagger.hilt.android.AndroidEntryPoint;
 
@@ -67,22 +59,6 @@ public class HomeActivity extends AppCompatActivity {
     });
 
 
-    @Inject
-    @OnlineImpl
-    BranchRepository branchOnlineRepository;
-
-    @Inject
-    @OfflineImpl
-    BranchRepository branchOfflineRepository;
-
-    @Inject
-    @OnlineImpl
-    RoleRepository roleOnlineRepository;
-
-    @Inject
-    @OfflineImpl
-    RoleRepository roleOfflineRepository;
-
     MutableLiveData<Session> sessionMutableLiveData;
 
     String[] permissions = new String[] {
@@ -103,8 +79,6 @@ public class HomeActivity extends AppCompatActivity {
             requestBluetoothPerms.launch(permissions);
         }
 
-
-
         this.sessionMutableLiveData = this.homeActivityViewmodel.sessionMutableLiveData;
         homeActivityViewmodel.getSession().thenAccept(session -> {
             DatabaseReference connectedRef = FirebaseDatabase.getInstance().getReference("/.info/connected");
@@ -124,9 +98,6 @@ public class HomeActivity extends AppCompatActivity {
                     Toast.makeText(HomeActivity.this, "Error Detecting network status", Toast.LENGTH_SHORT).show();
                 }
             });
-
-
-
         });
 
         DrawerLayout layout = binding.main;

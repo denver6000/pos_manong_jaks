@@ -1,9 +1,7 @@
 package com.denproj.posmanongjaks.viewModel;
 
-import androidx.annotation.NonNull;
 import androidx.lifecycle.ViewModel;
 
-import com.denproj.posmanongjaks.room.dao.UserDao;
 import com.denproj.posmanongjaks.util.AsyncRunner;
 import com.denproj.posmanongjaks.util.OnDataReceived;
 import com.google.firebase.auth.FirebaseAuth;
@@ -16,12 +14,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel;
 @HiltViewModel
 public class SettingsFragmentViewmodel extends ViewModel {
 
-    UserDao userDao;
     FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
 
     @Inject
-    public SettingsFragmentViewmodel(UserDao userDao) {
-        this.userDao = userDao;
+    public SettingsFragmentViewmodel() {
     }
 
     public void resetPassword(boolean isConnectionReachable, OnPasswordResetFinished onPasswordResetFinished) {
@@ -49,7 +45,6 @@ public class SettingsFragmentViewmodel extends ViewModel {
         AsyncRunner.runAsync(new AsyncRunner.MiniRunner<Void>() {
             @Override
             public Void onBackground() throws Exception {
-                userDao.deleteAllSavedLogin();
                 return null;
             }
 

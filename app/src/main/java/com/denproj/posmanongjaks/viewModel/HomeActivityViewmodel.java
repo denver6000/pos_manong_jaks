@@ -13,8 +13,6 @@ import com.denproj.posmanongjaks.repository.base.UserRepository;
 import com.denproj.posmanongjaks.session.Session;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 import javax.inject.Inject;
 

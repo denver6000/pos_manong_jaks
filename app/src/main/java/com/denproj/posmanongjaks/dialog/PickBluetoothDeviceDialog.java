@@ -3,24 +3,16 @@ package com.denproj.posmanongjaks.dialog;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Dialog;
-import android.content.Context;
-import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.widget.Button;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
-import androidx.fragment.app.Fragment;
-
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.Toast;
 
 import com.dantsu.escposprinter.EscPosPrinter;
 import com.dantsu.escposprinter.connection.bluetooth.BluetoothConnection;
@@ -29,12 +21,10 @@ import com.dantsu.escposprinter.exceptions.EscPosBarcodeException;
 import com.dantsu.escposprinter.exceptions.EscPosConnectionException;
 import com.dantsu.escposprinter.exceptions.EscPosEncodingException;
 import com.dantsu.escposprinter.exceptions.EscPosParserException;
-import com.denproj.posmanongjaks.R;
 import com.denproj.posmanongjaks.databinding.FragmentPickBluetoothDeviceDialogBinding;
 import com.denproj.posmanongjaks.model.CompleteSaleInfo;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 

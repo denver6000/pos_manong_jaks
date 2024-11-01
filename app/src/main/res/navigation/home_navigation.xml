@@ -25,7 +25,7 @@
     <fragment
         android:id="@+id/stock_view"
         android:name="com.denproj.posmanongjaks.fragments.branch.BranchFragment"
-        android:label="Inventories">
+        android:label="Items on this Branch">
         <action
             android:id="@+id/action_stock_view_to_manage_sales"
             app:destination="@id/manage_sales" />
@@ -50,7 +50,7 @@
     <fragment
         android:id="@+id/salesHistoryFragment"
         android:name="com.denproj.posmanongjaks.fragments.sales.SalesHistoryFragment"
-        android:label="Sales History" />
+        android:label="SalesHistoryFragment" />
     <activity
         android:id="@+id/printActivity"
         android:name="com.denproj.posmanongjaks.PrintActivity"

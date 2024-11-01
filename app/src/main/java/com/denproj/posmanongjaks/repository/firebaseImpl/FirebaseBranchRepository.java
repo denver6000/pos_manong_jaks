@@ -1,13 +1,8 @@
 package com.denproj.posmanongjaks.repository.firebaseImpl;
 
-import androidx.lifecycle.LiveData;
-
 import com.denproj.posmanongjaks.model.Branch;
 import com.denproj.posmanongjaks.repository.base.BranchRepository;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.concurrent.CompletableFuture;
 

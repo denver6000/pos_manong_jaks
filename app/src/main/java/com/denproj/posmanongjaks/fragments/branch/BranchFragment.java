@@ -7,27 +7,16 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 
 import com.denproj.posmanongjaks.adapter.ItemsRecyclerViewAdapter;
 import com.denproj.posmanongjaks.databinding.FragmentBranchBinding;
 import com.denproj.posmanongjaks.dialog.LoadingDialog;
-import com.denproj.posmanongjaks.hilt.qualifier.OfflineImpl;
-import com.denproj.posmanongjaks.hilt.qualifier.OnlineImpl;
 import com.denproj.posmanongjaks.model.Branch;
-import com.denproj.posmanongjaks.model.Item;
-import com.denproj.posmanongjaks.repository.base.ItemRepository;
-import com.denproj.posmanongjaks.util.OnFetchFailed;
-import com.denproj.posmanongjaks.util.OnUpdateUI;
 import com.denproj.posmanongjaks.viewModel.BranchFragmentViewmodel;
 import com.denproj.posmanongjaks.viewModel.HomeActivityViewmodel;
 import com.denproj.posmanongjaks.viewModel.MainViewModel;
-
-import java.util.List;
-
-import javax.inject.Inject;
 
 import dagger.hilt.android.AndroidEntryPoint;
 
