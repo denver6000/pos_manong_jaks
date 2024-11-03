@@ -103,7 +103,7 @@ public class Item {
     @NonNull
     @Override
     public String toString() {
-        return item_name;
+        return String.valueOf(item_id);
     }
 }
 

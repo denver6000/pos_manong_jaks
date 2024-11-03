@@ -3,6 +3,7 @@ package com.denproj.posmanongjaks.adapter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CompoundButton;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -46,8 +47,12 @@ public class AddOnRecyclerViewAdapter extends RecyclerView.Adapter<AddOnRecycler
 
             }
         });
-        addOnLayoutBinding.addAddOn.setOnClickListener(view -> {
-            itemsMap.put(item, 1);
+        addOnLayoutBinding.addAdOnsToCheckOut.setOnCheckedChangeListener((compoundButton, b) -> {
+            if (b) {
+                itemsMap.put(item, 1);
+            } else {
+                itemsMap.remove(item);
+            }
         });
     }
 

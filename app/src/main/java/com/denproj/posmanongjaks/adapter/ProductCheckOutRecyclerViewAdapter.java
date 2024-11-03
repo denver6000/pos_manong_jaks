@@ -27,10 +27,6 @@ public class ProductCheckOutRecyclerViewAdapter extends RecyclerView.Adapter<Pro
         this.productArrayList = productArrayList;
     }
 
-    public void removeItem(int position) {
-
-    }
-
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -114,9 +110,9 @@ public class ProductCheckOutRecyclerViewAdapter extends RecyclerView.Adapter<Pro
         Integer addOnAmount = productWrapper.getAddOnAmount();
         Long productId = productWrapper.getProduct().getProduct_id();
         if (addOnAmount == 1) {
-            selectedProducts.remove(productId);
-            productArrayList.remove(index);
-            notifyItemRemoved(index);
+//            selectedProducts.remove(productId);
+//            productArrayList.remove(index);
+//            notifyItemRemoved(index);
         } else if (addOnAmount > 1) {
             productWrapper.setAddOnAmount(addOnAmount - 1);
         }

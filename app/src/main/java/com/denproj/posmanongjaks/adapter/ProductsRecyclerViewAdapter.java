@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.CompoundButton;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.ListPopupWindow;
@@ -46,8 +47,12 @@ public class ProductsRecyclerViewAdapter extends RecyclerView.Adapter<ProductsRe
         ProductCardBinding binding = holder.binding;
         binding.setSaleAmount(String.valueOf(1));
 
-        binding.incrementProductAmount.setOnClickListener(view -> {
-            selectedProducts.putIfAbsent(product.getProduct_id(), new ProductWrapper(1, product));
+        binding.addToCheckout.setOnCheckedChangeListener((compoundButton, b) -> {
+            if (b) {
+                selectedProducts.putIfAbsent(product.getProduct_id(), new ProductWrapper(1, product));
+            } else {
+                selectedProducts.remove(product.getProduct_id());
+            }
         });
 
         binding.setProductName(product.getProduct_name());

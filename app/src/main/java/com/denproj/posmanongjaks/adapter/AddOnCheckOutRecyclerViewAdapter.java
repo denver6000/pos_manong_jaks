@@ -60,9 +60,9 @@ public class AddOnCheckOutRecyclerViewAdapter extends RecyclerView.Adapter<AddOn
         binding.decrementAmount.setOnClickListener(view -> {
             int amount = binding.getAddOnAmount();
             if (amount == 1) {
-                selectedAddOns.remove(item);
-                items.remove(holder.getAdapterPosition());
-                notifyItemRemoved(holder.getAdapterPosition());
+//                selectedAddOns.remove(item);
+//                items.remove(holder.getAdapterPosition());
+//                notifyItemRemoved(holder.getAdapterPosition());
             } else if (amount > 1) {
                 amount = amount - 1;
                 selectedAddOns.put(item, amount);
