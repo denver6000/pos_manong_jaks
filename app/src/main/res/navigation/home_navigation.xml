@@ -50,7 +50,7 @@
     <fragment
         android:id="@+id/salesHistoryFragment"
         android:name="com.denproj.posmanongjaks.fragments.sales.SalesHistoryFragment"
-        android:label="SalesHistoryFragment" />
+        android:label="Sales History" />
     <activity
         android:id="@+id/printActivity"
         android:name="com.denproj.posmanongjaks.PrintActivity"
