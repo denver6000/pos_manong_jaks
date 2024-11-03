@@ -1,10 +1,18 @@
 package com.denproj.posmanongjaks.viewModel;
 
+import androidx.annotation.NonNull;
 import androidx.lifecycle.ViewModel;
 
 import com.denproj.posmanongjaks.util.AsyncRunner;
 import com.denproj.posmanongjaks.util.OnDataReceived;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.EmailAuthCredential;
+import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
+import com.google.firebase.auth.FirebaseAuthInvalidUserException;
+import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException;
 import com.google.firebase.auth.FirebaseUser;
 
 import javax.inject.Inject;
@@ -41,49 +49,18 @@ public class SettingsFragmentViewmodel extends ViewModel {
         onPasswordResetFinished.onFail();
     }
 
-    public void clearSavedLoginAndLogout(OnLogOutSuccessful onLogOutSuccessful) {
-        AsyncRunner.runAsync(new AsyncRunner.MiniRunner<Void>() {
-            @Override
-            public Void onBackground() throws Exception {
-                return null;
-            }
-
-            @Override
-            public void onUI(Void result) {
-                deleteFirebaseUser(new OnDataReceived<Void>() {
-                    @Override
-                    public void onSuccess(Void result) {
-                        onLogOutSuccessful.onSuccess();
-                    }
-
-                    @Override
-                    public void onFail(Exception e) {
-                        onLogOutSuccessful.onFail(e);
-                    }
-                });
-            }
-
-            @Override
-            public void onError(Exception e) {
-                onLogOutSuccessful.onFail(e);
-            }
-        });
+    public void logout(OnLogOutSuccessful onLogOutSuccessful) {
+        if (isUserSignedIn()) {
+            firebaseAuth.signOut();
+            onLogOutSuccessful.onSuccess();
+        } else {
+            onLogOutSuccessful.onFail(new Exception("User already signed out."));
+        }
     }
+
 
     private boolean isUserSignedIn() {
         return firebaseAuth.getCurrentUser() != null;
-    }
-
-    private void deleteFirebaseUser(OnDataReceived<Void> onDataReceived) {
-        if (isUserSignedIn()) {
-            firebaseAuth.getCurrentUser().delete().addOnCompleteListener(task -> {
-                if (task.isSuccessful()) {
-                    onDataReceived.onSuccess(null);
-                } else {
-                    onDataReceived.onFail(task.getException());
-                }
-            });
-        }
     }
 
     public interface OnPasswordResetFinished {
@@ -95,5 +72,13 @@ public class SettingsFragmentViewmodel extends ViewModel {
         void onSuccess();
         void onFail(Exception e);
     }
+
+
+
+    public interface UserTask{
+        void success();
+        void failed(Exception e);
+    }
+
 
 }

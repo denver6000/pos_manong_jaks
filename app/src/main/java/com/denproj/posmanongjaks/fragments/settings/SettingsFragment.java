@@ -1,11 +1,13 @@
 package com.denproj.posmanongjaks.fragments.settings;
 
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
@@ -40,18 +42,18 @@ public class SettingsFragment extends Fragment {
                     }
                 });
             });
+
             binding.logOutBtn.setOnClickListener(view -> {
-                settingsFragmentViewmodel.clearSavedLoginAndLogout(new SettingsFragmentViewmodel.OnLogOutSuccessful() {
+                settingsFragmentViewmodel.logout(new SettingsFragmentViewmodel.OnLogOutSuccessful() {
                     @Override
                     public void onSuccess() {
-                        Toast.makeText(requireActivity(), "Logged out without errors.", Toast.LENGTH_SHORT).show();
                         requireActivity().finish();
                     }
 
                     @Override
                     public void onFail(Exception e) {
-                        Toast.makeText(requireActivity(), "Logged out with errors.", Toast.LENGTH_SHORT).show();
                         requireActivity().finish();
+                        Toast.makeText(requireContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
             });
@@ -59,4 +61,5 @@ public class SettingsFragment extends Fragment {
 
         return binding.getRoot();
     }
+
 }

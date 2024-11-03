@@ -13,6 +13,19 @@ import com.denproj.posmanongjaks.databinding.FragmentLoadingDialogBinding;
 
 public class LoadingDialog extends DialogFragment {
 
+    private String message = "";
+    private String title = "";
+
+    public LoadingDialog(String message, String title) {
+        this.message = message;
+        this.title = title;
+    }
+
+    public LoadingDialog() {
+    }
+
+
+
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
@@ -23,6 +36,11 @@ public class LoadingDialog extends DialogFragment {
         AlertDialog dialog = loadingDialogBuilder.create();
         dialog.setCanceledOnTouchOutside(false);
         dialog.setView(binding.getRoot());
+
+        if (!message.isEmpty() && !title.isEmpty()) {
+            dialog.setMessage(this.message);
+            dialog.setTitle(this.title);
+        }
 
         return dialog;
     }

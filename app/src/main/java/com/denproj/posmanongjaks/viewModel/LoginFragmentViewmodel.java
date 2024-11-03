@@ -21,16 +21,11 @@ public class LoginFragmentViewmodel extends ViewModel {
 
     }
 
-
-
-
-
     public void firebaseLogin(IsFirebaseAuthCachePresent isFirebaseAuthCachePresent) {
         FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
         if (firebaseAuth.getCurrentUser() == null) {
             isFirebaseAuthCachePresent.cacheAbsent();
         } else {
-            String uid = firebaseAuth.getCurrentUser().getUid();
             isFirebaseAuthCachePresent.cachePresent();
         }
     }

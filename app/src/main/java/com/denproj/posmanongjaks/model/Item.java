@@ -3,6 +3,7 @@ package com.denproj.posmanongjaks.model;
 
 import androidx.annotation.NonNull;
 import androidx.room.Entity;
+import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
 @Entity
@@ -17,10 +18,10 @@ public class Item {
     private int item_quantity;
     private String item_unit;
     private double item_price;
-
-
     private boolean ads_on;
 
+
+    @Ignore
     public Item(String item_image_path, int item_id, String item_name, String item_category, int item_quantity, String item_unit, double item_price, boolean ads_on) {
         this.item_image_path = item_image_path;
         this.item_id = item_id;

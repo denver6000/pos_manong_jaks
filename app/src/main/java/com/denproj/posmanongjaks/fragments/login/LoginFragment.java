@@ -28,6 +28,7 @@ public class LoginFragment extends Fragment implements OnLoginSuccessful {
     LoginFragmentViewmodel loginFragmentViewmodel;
     MainViewModel mainViewModel;
     NavController navController;
+    LoadingDialog loadingDialog;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -44,14 +45,19 @@ public class LoginFragment extends Fragment implements OnLoginSuccessful {
 
         binding.setLoginViewmodel(this.loginFragmentViewmodel);
 
-        LoadingDialog loadingDialog = new LoadingDialog();
+        this.loadingDialog = new LoadingDialog("Detecting Saved Login", "Loading");
+
+
+        binding.loginActionButton.setOnClickListener(view -> setupLoginButton(LoginFragment.this));
+        return binding.getRoot();
+    }
+
+    public void setupLogin() {
         loadingDialog.show(getChildFragmentManager(), "");
-
-
-
         LoginFragment.this.loginFragmentViewmodel.firebaseLogin(new LoginFragmentViewmodel.IsFirebaseAuthCachePresent() {
             @Override
             public void cachePresent() {
+                Toast.makeText(requireContext(), "Previous Login Detected", Toast.LENGTH_SHORT).show();
                 loadingDialog.dismiss();
                 navController.navigate(LoginFragmentDirections.actionLoginFragmentToHomeActivity());
             }
@@ -59,18 +65,13 @@ public class LoginFragment extends Fragment implements OnLoginSuccessful {
             @Override
             public void cacheAbsent() {
                 loadingDialog.dismiss();
-                binding.loginActionButton.setOnClickListener(view -> setupLoginButton(LoginFragment.this));
             }
         });
-        return binding.getRoot();
     }
 
     public void setupLoginButton(OnLoginSuccessful onLoginSuccessful) {
         loginFragmentViewmodel.emailPasswordLogin(onLoginSuccessful);
     }
-
-
-
 
     @Override
     public void onLoginSuccess() {
@@ -82,7 +83,9 @@ public class LoginFragment extends Fragment implements OnLoginSuccessful {
         Toast.makeText(requireContext(), e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
     }
 
-
-
-
+    @Override
+    public void onResume() {
+        setupLogin();
+        super.onResume();
+    }
 }
