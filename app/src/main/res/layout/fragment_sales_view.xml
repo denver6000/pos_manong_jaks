@@ -4,7 +4,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     tools:context=".fragments.sales.SalesViewFragment">
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -12,8 +11,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:clickable="true"
-        android:src="@drawable/ic_pos"
-        app:backgroundTint="#FFFFFF"
+        android:src="@drawable/ic_shopping_cart"
+        app:backgroundTint="#FF9800"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.909"
@@ -25,21 +24,44 @@
         android:id="@+id/menuRcv"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        app:layout_constraintBottom_toTopOf="@+id/addOnList"
+        app:layout_constraintBottom_toTopOf="@+id/addOnTopDivider"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent" />
 
-    </androidx.recyclerview.widget.RecyclerView>
+    <!-- Top Divider Line for Add-Ons Section -->
+    <View
+        android:id="@+id/addOnTopDivider"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:background="#BDBDBD"
+        app:layout_constraintTop_toBottomOf="@id/menuRcv"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="4dp" />
+
+    <!-- Title for Add-Ons List -->
+    <TextView
+        android:id="@+id/addOnTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Add-Ons"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginStart="16dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/addOnTopDivider" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/addOnList"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintBottom_toTopOf="@+id/linearLayout3"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@id/addOnTitle"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintBottom_toTopOf="@id/linearLayout3" />
 
     <LinearLayout
         android:id="@+id/linearLayout3"
@@ -48,6 +70,6 @@
         android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"/>
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
