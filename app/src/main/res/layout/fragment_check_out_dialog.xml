@@ -16,6 +16,72 @@
         android:orientation="vertical"
         tools:context=".dialog.CheckOutDialogFragment">
 
+        <!-- Header with Title -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#3F51B5"
+            android:paddingVertical="16dp"
+            android:paddingHorizontal="24dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/headerTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Checkout Order"
+                android:textColor="#FFFFFF"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- Menus Text Label -->
+        <TextView
+            android:id="@+id/menusLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Menus"
+            android:textColor="#000000"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:gravity="start"
+            android:paddingStart="16dp"
+            android:layout_marginTop="8dp" />
+
+        <!-- Products RecyclerView -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/productsTobeSold"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp" />
+
+        <!-- Divider for "Add Ons" section -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#CCCCCC"
+            android:layout_marginVertical="8dp" />
+
+        <!-- Add Ons Text -->
+        <TextView
+            android:id="@+id/textView23"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Add Ons"
+            android:textColor="#FFA500"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:gravity="end"
+            android:paddingEnd="16dp" />
+
+        <!-- Selected Add Ons RecyclerView -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/selectedAddOns"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp" />
+
+        <!-- Paid Amount Input -->
         <EditText
             android:id="@+id/amountPayed"
             android:layout_width="match_parent"
@@ -23,46 +89,35 @@
             android:ems="10"
             android:text="@={payedAmount}"
             android:hint="Paid Amount"
-            android:inputType="number" />
+            android:inputType="number"
+            android:layout_marginTop="16dp"
+            android:paddingHorizontal="16dp" />
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/productsTobeSold"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" >
-
-        </androidx.recyclerview.widget.RecyclerView>
-
-        <TextView
-            android:id="@+id/textView23"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Add Ons"
-            android:textColor="#000000"
-            android:textSize="16sp" />
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/selectedAddOns"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-
+        <!-- Total Amount Layout -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:padding="16dp">
 
             <TextView
                 android:id="@+id/totalText"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Total: " />
+                android:text="Total:"
+                android:textSize="16sp"
+                android:textColor="#000000" />
 
             <TextView
                 android:id="@+id/saleTotal"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="@{totalAmount.toString()}" />
+                android:text="@{totalAmount.toString()}"
+                android:textSize="16sp"
+                android:textColor="#000000"
+                android:textStyle="bold" />
         </LinearLayout>
 
     </LinearLayout>

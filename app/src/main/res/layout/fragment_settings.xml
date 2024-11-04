@@ -6,31 +6,44 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="10dp"
+    android:gravity="center_horizontal"
     tools:context=".fragments.settings.SettingsFragment">
 
     <TextView
         android:id="@+id/textView27"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp"
         android:fontFamily="sans-serif-medium"
-        android:text="Settings"
+        android:text="Account Settings"
         android:textColor="#000000"
-        android:textSize="34sp" />
+        android:textSize="20sp" />
+
+    <ImageView
+        android:id="@+id/settingsIcon"
+        android:layout_width="200dp"
+        android:layout_height="150dp"
+        android:layout_marginTop="8dp"
+        android:src="@drawable/small_logo"
+    android:contentDescription="Settings Icon" />
 
     <Button
         android:id="@+id/changePassword"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Change Password"
-        />
+        android:layout_marginTop="16dp"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#FFC107"
+        android:text="Change Password" />
+
     <Button
         android:id="@+id/logOutBtn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Log Out"
-        />
+        android:layout_marginTop="8dp"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#F84040"
+        android:text="Log Out" />
 
 
 </LinearLayout>

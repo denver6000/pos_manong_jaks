@@ -5,31 +5,71 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".PrintActivity"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:gravity="center_horizontal"
+    android:padding="16dp"
+    tools:context=".PrintActivity">
+
+    <!-- Title Text -->
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Printer Settings"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp"
+        android:gravity="center" />
+
+    <!-- Logo Image -->
+    <ImageView
+        android:id="@+id/logo"
+        android:layout_width="250dp"
+        android:layout_height="150dp"
+        android:layout_gravity="center"
+        android:src="@drawable/small_logo"
+        android:contentDescription="Logo Image"/>
 
     <TextView
         android:id="@+id/name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Name of Printer" />
+        android:layout_marginTop="16dp"
+        android:text="Name of Printer"
+        android:gravity="center" />
 
+    <!-- Buttons with background tint and left/right margins -->
     <Button
         android:id="@+id/printData"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Print Data" />
+        android:layout_marginTop="8dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:text="Print Data"
+        android:textColor="#2A2A2A"
+        android:backgroundTint="#FFC107" />
 
     <Button
         android:id="@+id/pritntWithDefaultPrinter"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Print With Connected Printer" />
+        android:layout_marginTop="8dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:text="Print With Connected Printer"
+        android:textColor="#2A2A2A"
+        android:backgroundTint="#FFC107" />
 
     <Button
         android:id="@+id/chooseDevice"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Pick Device" />
+        android:layout_marginTop="8dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:text="Pick Device"
+        android:textColor="#2A2A2A"
+        android:backgroundTint="#FFC107" />
 
 </LinearLayout>
