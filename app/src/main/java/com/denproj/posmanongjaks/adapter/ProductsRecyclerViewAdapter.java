@@ -10,10 +10,12 @@ import android.widget.CompoundButton;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.ListPopupWindow;
+import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.denproj.posmanongjaks.R;
 import com.denproj.posmanongjaks.databinding.ProductCardBinding;
+import com.denproj.posmanongjaks.dialog.PopUpRecipeDialog;
 import com.denproj.posmanongjaks.model.Item;
 import com.denproj.posmanongjaks.model.Product;
 import com.denproj.posmanongjaks.model.ProductWrapper;
@@ -27,7 +29,13 @@ public class ProductsRecyclerViewAdapter extends RecyclerView.Adapter<ProductsRe
 
     List<Product> productList = new ArrayList<>();
     private HashMap<Long, ProductWrapper> selectedProducts = new HashMap<>();
+    String branchId;
+    FragmentManager manager;
 
+    public ProductsRecyclerViewAdapter(String branchId, FragmentManager manager) {
+        this.branchId = branchId;
+        this.manager = manager;
+    }
 
     public void refreshAdapter(List<Product> newProductList) {
         this.productList.clear();
@@ -67,6 +75,10 @@ public class ProductsRecyclerViewAdapter extends RecyclerView.Adapter<ProductsRe
             public void onError(Exception e) {
                 Log.e("ProductsRCV", e.getMessage());
             }
+        });
+
+        binding.productCard.setOnClickListener(view -> {
+            new PopUpRecipeDialog(product.getRecipes(), branchId).show(this.manager, "");
         });
     }
 

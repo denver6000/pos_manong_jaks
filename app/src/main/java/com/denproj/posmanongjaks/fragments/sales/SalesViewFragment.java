@@ -69,7 +69,7 @@ public class SalesViewFragment extends Fragment {
             setupAddOnRcv();
             observeAddons(branchId);
 
-            setupProductRcv();
+            setupProductRcv(branchId);
             observeProducts(branchId);
 
             setupViews(session);
@@ -131,8 +131,8 @@ public class SalesViewFragment extends Fragment {
         });
     }
 
-    public void setupProductRcv() {
-        this.productsRecyclerViewAdapter = new ProductsRecyclerViewAdapter();
+    public void setupProductRcv(String branchId) {
+        this.productsRecyclerViewAdapter = new ProductsRecyclerViewAdapter(branchId, getChildFragmentManager());
         binding.menuRcv.setAdapter(productsRecyclerViewAdapter);
     }
 
