@@ -127,4 +127,8 @@ public class CheckOutDialogFragment extends DialogFragment {
         void onSuccess(CompleteSaleInfo completeSaleInfo);
         void onFail(Exception e, HashMap<String, String> itemNameAndErrors);
     }
+
+    public interface ProceedToCheckOut {
+
+    }
 }

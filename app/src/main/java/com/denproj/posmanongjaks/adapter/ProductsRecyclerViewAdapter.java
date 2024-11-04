@@ -108,6 +108,7 @@ public class ProductsRecyclerViewAdapter extends RecyclerView.Adapter<ProductsRe
 
     public void clearSelectedProducts() {
         this.selectedProducts.clear();
+        notifyItemRangeChanged(0, productList.size());
     }
 
 }

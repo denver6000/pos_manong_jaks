@@ -39,6 +39,8 @@ public class PopUpRecipeDialog extends DialogFragment {
     private String branchid;
     private FragmentPopUpRecipeDialogBinding binding;
 
+
+
     public PopUpRecipeDialog(HashMap<String, Recipe> productRecipe, String branchid) {
         this.productRecipe = productRecipe;
         this.branchid = branchid;

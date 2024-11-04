@@ -9,6 +9,9 @@
         <variable
             name="addOnPrice"
             type="String" />
+        <variable
+            name="stockCount"
+            type="String" />
     </data>
 
     <androidx.cardview.widget.CardView
@@ -22,6 +25,11 @@
             android:background="#F0F0F0"
             android:orientation="vertical"
             android:padding="8dp"> <!-- Added padding for internal spacing -->
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@{stockCount}" />
 
             <ImageView
                 android:id="@+id/imageView4"

@@ -38,7 +38,7 @@ public class ItemsRecyclerViewAdapter extends RecyclerView.Adapter<ItemsRecycler
         binding.setItemName(item.getItem_name());
         binding.setItemStockCount(item.getItem_quantity() + "");
         binding.setItemUnit(item.getItem_unit());
-        binding.setItemPrice(item.getItem_price() + "Pesos");
+        binding.setItemPrice(((int) item.getItem_price()) + "Pesos");
         ImagePathBinder.bindImagePathToImageView(item.getItem_image_path(), binding.stockItemImageView, binding.getRoot().getContext(), new ImagePathBinder.OnImageBound() {
             @Override
             public void onBound() {

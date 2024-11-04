@@ -33,7 +33,6 @@ import dagger.hilt.android.AndroidEntryPoint;
 
 
 @AndroidEntryPoint
-
 public class SalesViewFragment extends Fragment {
 
     ProductsRecyclerViewAdapter productsRecyclerViewAdapter;
@@ -85,7 +84,8 @@ public class SalesViewFragment extends Fragment {
                 @Override
                 public void onSuccess(CompleteSaleInfo completeSaleInfo) {
                     AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-                    builder.setTitle("Print Receipt?").setMessage("Print a receipt");
+
+                    builder.setTitle("Change: " + completeSaleInfo.getSale().getChange()).setMessage("Print a receipt");
 
                     builder.setPositiveButton("Print", (dialogInterface, i) -> {
                         NavController navController = Navigation.findNavController(requireActivity(), R.id.homeFragmentContainerView);
@@ -97,7 +97,9 @@ public class SalesViewFragment extends Fragment {
                     });
 
                     builder.create().show();
+
                     clearOrders();
+
                 }
 
                 @Override
@@ -159,6 +161,7 @@ public class SalesViewFragment extends Fragment {
     public void clearOrders () {
         productsRecyclerViewAdapter.clearSelectedProducts();
         addOnRecyclerViewAdapter.clearSelectedItems();
+
     }
 
     public String formatReceipt(CompleteSaleInfo completeSaleInfo, Branch branch, String uid) {

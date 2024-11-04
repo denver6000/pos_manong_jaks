@@ -35,7 +35,7 @@ public class AddOnRecyclerViewAdapter extends RecyclerView.Adapter<AddOnRecycler
         AddOnLayoutBinding addOnLayoutBinding = holder.binding;
         addOnLayoutBinding.setAddOnName(item.getItem_name());
         addOnLayoutBinding.setAddOnPrice(String.valueOf(item.getItem_price()));
-
+        addOnLayoutBinding.setStockCount("Stocks: " + item.getItem_quantity());
         ImagePathBinder.bindImagePathToImageView(item.getItem_image_path(), addOnLayoutBinding.imageView4, addOnLayoutBinding.getRoot().getContext(), new ImagePathBinder.OnImageBound() {
             @Override
             public void onBound() {
@@ -83,5 +83,8 @@ public class AddOnRecyclerViewAdapter extends RecyclerView.Adapter<AddOnRecycler
 
     public void clearSelectedItems() {
         this.itemsMap.clear();
+        notifyItemRangeChanged(0, this.items.size());
     }
+
+
 }

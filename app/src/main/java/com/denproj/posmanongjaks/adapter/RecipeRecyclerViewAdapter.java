@@ -32,7 +32,7 @@ public class RecipeRecyclerViewAdapter extends RecyclerView.Adapter<RecipeRecycl
         RecipeCardBinding binding = holder.getBinding();
         Item item = items.get(holder.getAdapterPosition());
         binding.setProductName(item.getItem_name());
-        binding.setProductPrice(String.valueOf(item.getItem_price()));
+        binding.setProductPrice(String.valueOf(item.getItem_quantity()));
     }
 
     @Override

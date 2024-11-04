@@ -100,12 +100,13 @@ public class FirebaseSaleRepository implements SaleRepository {
                         Integer itemQuantityVal = itemQuantitySnapshot.getValue(Integer.class);
 
                         if (!itemQuantitySnapshot.exists() || itemQuantityVal == null) {
-                            itemsFailed.put(itemName, "'s [Item Quantity] is not configured correctly.");
+                            itemsFailed.put(itemName, " [Item Quantity] is not configured correctly.");
                             continue;
                         }
 
                         if (itemQuantityVal < amountToReduce) {
-                             itemsFailed.put(itemName, "'s Item Quantity (Stock) is not enough to fulfil order.");
+                            int discrepancy = amountToReduce - itemQuantityVal;
+                             itemsFailed.put(itemName, " Item Quantity (Stock) is not enough to fulfil order. " + discrepancy + " is needed.");
                             continue;
                         }
 
