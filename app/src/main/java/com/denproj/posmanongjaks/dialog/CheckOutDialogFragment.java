@@ -21,6 +21,10 @@ import com.denproj.posmanongjaks.model.ProductWrapper;
 import com.denproj.posmanongjaks.repository.firebaseImpl.FirebaseSaleRepository;
 import com.denproj.posmanongjaks.viewModel.CheckOutDialogViewmodel;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -88,11 +92,11 @@ public class CheckOutDialogFragment extends DialogFragment {
             }
 
             Float paidAmount = Float.parseFloat(binding.getPayedAmount());
+            ZonedDateTime zonedDateTime = ZonedDateTime.now(ZoneId.of("Asia/Manila"));
 
-            Calendar calendar = GregorianCalendar.getInstance();
-            int month = calendar.get(GregorianCalendar.MONTH);
-            int year = calendar.get(GregorianCalendar.YEAR);
-            int dayOfMonth = calendar.get(GregorianCalendar.DAY_OF_MONTH);
+            int month = zonedDateTime.getMonthValue();
+            int year = zonedDateTime.getYear();
+            int dayOfMonth = zonedDateTime.getDayOfMonth();
 
             viewmodel.sell(branch.getBranch_id(), productsAdapter.getSelectedProducts(), addOnsAdapter.getSelectedAddOns(), year, month, dayOfMonth, total, paidAmount.doubleValue(), new FirebaseSaleRepository.OnSaleStatus() {
                 @Override
