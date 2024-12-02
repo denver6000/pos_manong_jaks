@@ -6,7 +6,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.CompoundButton;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.ListPopupWindow;
@@ -77,9 +76,11 @@ public class ProductsRecyclerViewAdapter extends RecyclerView.Adapter<ProductsRe
             }
         });
 
-        binding.productCard.setOnClickListener(view -> {
-            new PopUpRecipeDialog(product.getRecipes(), branchId).show(this.manager, "");
-        });
+
+        // TDOD: Fix When Kuya Emman Fixes Bug In Import
+//        binding.productCard.setOnClickListener(view -> {
+//            new PopUpRecipeDialog(product.recipes, branchId).show(this.manager, "");
+//        });
     }
 
     public HashMap<Long, ProductWrapper> getSelectedProducts() {

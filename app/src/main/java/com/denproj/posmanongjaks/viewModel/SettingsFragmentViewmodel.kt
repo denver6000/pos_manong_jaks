@@ -1,84 +1,65 @@
-package com.denproj.posmanongjaks.viewModel;
+package com.denproj.posmanongjaks.viewModel
 
-import androidx.annotation.NonNull;
-import androidx.lifecycle.ViewModel;
-
-import com.denproj.posmanongjaks.util.AsyncRunner;
-import com.denproj.posmanongjaks.util.OnDataReceived;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.auth.EmailAuthCredential;
-import com.google.firebase.auth.EmailAuthProvider;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
-import com.google.firebase.auth.FirebaseAuthInvalidUserException;
-import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException;
-import com.google.firebase.auth.FirebaseUser;
-
-import javax.inject.Inject;
-
-import dagger.hilt.android.lifecycle.HiltViewModel;
+import androidx.lifecycle.ViewModel
+import com.google.android.gms.tasks.Task
+import com.google.firebase.auth.FirebaseAuth
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
 @HiltViewModel
-public class SettingsFragmentViewmodel extends ViewModel {
+class SettingsFragmentViewmodel @Inject constructor() : ViewModel() {
+    var firebaseAuth: FirebaseAuth = FirebaseAuth.getInstance()
 
-    FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
-
-    @Inject
-    public SettingsFragmentViewmodel() {
-    }
-
-    public void resetPassword(boolean isConnectionReachable, OnPasswordResetFinished onPasswordResetFinished) {
-
-        FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
-        if (isConnectionReachable && isUserSignedIn() && firebaseUser.getEmail() != null) {
-            String email = firebaseUser.getEmail();
-            firebaseAuth.sendPasswordResetEmail(email).addOnCompleteListener(task -> {
-                if (task.isSuccessful()) {
-                    firebaseAuth.signOut();
+    fun resetPassword(
+        isConnectionReachable: Boolean,
+        onPasswordResetFinished: OnPasswordResetFinished
+    ) {
+        val firebaseUser = firebaseAuth.currentUser
+        if (isConnectionReachable && isUserSignedIn && firebaseUser!!.email != null) {
+            val email = firebaseUser.email
+            firebaseAuth.sendPasswordResetEmail(email!!)
+                .addOnCompleteListener { task: Task<Void?> ->
+                    if (task.isSuccessful) {
+                        firebaseAuth.signOut()
+                    }
                 }
-            });
-            firebaseAuth.addAuthStateListener(firebaseAuth -> {
-                if (firebaseAuth.getCurrentUser() == null) {
-                    onPasswordResetFinished.onSuccess();
+            firebaseAuth.addAuthStateListener { firebaseAuth: FirebaseAuth ->
+                if (firebaseAuth.currentUser == null) {
+                    onPasswordResetFinished.onSuccess()
                 }
-            });
-            return;
+            }
+            return
         }
 
-        onPasswordResetFinished.onFail();
+        onPasswordResetFinished.onFail()
     }
 
-    public void logout(OnLogOutSuccessful onLogOutSuccessful) {
-        if (isUserSignedIn()) {
-            firebaseAuth.signOut();
-            onLogOutSuccessful.onSuccess();
+    fun logout(onLogOutSuccessful: OnLogOutSuccessful) {
+        if (isUserSignedIn) {
+            firebaseAuth.signOut()
+            onLogOutSuccessful.onSuccess()
         } else {
-            onLogOutSuccessful.onFail(new Exception("User already signed out."));
+            onLogOutSuccessful.onFail(Exception("User already signed out."))
         }
     }
 
 
-    private boolean isUserSignedIn() {
-        return firebaseAuth.getCurrentUser() != null;
+    private val isUserSignedIn: Boolean
+        get() = firebaseAuth.currentUser != null
+
+    interface OnPasswordResetFinished {
+        fun onSuccess()
+        fun onFail()
     }
 
-    public interface OnPasswordResetFinished {
-        void onSuccess();
-        void onFail();
-    }
-
-    public interface OnLogOutSuccessful {
-        void onSuccess();
-        void onFail(Exception e);
-    }
-
-
-
-    public interface UserTask{
-        void success();
-        void failed(Exception e);
+    interface OnLogOutSuccessful {
+        fun onSuccess()
+        fun onFail(e: Exception?)
     }
 
 
+    interface UserTask {
+        fun success()
+        fun failed(e: Exception?)
+    }
 }

@@ -1,26 +1,32 @@
-package com.denproj.posmanongjaks.repository.firebaseImpl;
+package com.denproj.posmanongjaks.repository.firebaseImpl
 
-import com.denproj.posmanongjaks.model.Branch;
-import com.denproj.posmanongjaks.repository.base.BranchRepository;
-import com.google.firebase.firestore.FirebaseFirestore;
+import com.denproj.posmanongjaks.model.Branch
+import com.denproj.posmanongjaks.repository.base.BranchRepository
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.QuerySnapshot
+import java.util.concurrent.CompletableFuture
 
-import java.util.concurrent.CompletableFuture;
+class FirebaseBranchRepository : BranchRepository {
+    override var firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
 
-public class FirebaseBranchRepository implements BranchRepository {
-    private static final String PATH_TO_BRANCHES = "branches";
-    FirebaseFirestore firestore = FirebaseFirestore.getInstance();
-
-    @Override
-    public CompletableFuture<Branch> getBranch(String branchId) {
-        CompletableFuture<Branch> branchCompletableFuture = new CompletableFuture<>();
-        firestore.collection(PATH_TO_BRANCHES).whereEqualTo("branch_id", branchId).get().addOnSuccessListener(queryDocumentSnapshots -> {
-            if (queryDocumentSnapshots.isEmpty()) {
-                branchCompletableFuture.completeExceptionally(new Exception("No Branch Associated With this account."));
-            } else {
-                Branch branch = queryDocumentSnapshots.getDocuments().get(0).toObject(Branch.class);
-                branchCompletableFuture.complete(branch);
+    override fun getBranch(branchId: String?): CompletableFuture<Branch?>? {
+        val branchCompletableFuture = CompletableFuture<Branch?>()
+        firestore.collection(PATH_TO_BRANCHES).whereEqualTo("branch_id", branchId).get()
+            .addOnSuccessListener { queryDocumentSnapshots: QuerySnapshot ->
+                if (queryDocumentSnapshots.isEmpty) {
+                    branchCompletableFuture.completeExceptionally(Exception("No Branch Associated With this account."))
+                } else {
+                    val branch =
+                        queryDocumentSnapshots.documents[0].toObject(
+                            Branch::class.java
+                        )
+                    branchCompletableFuture.complete(branch)
+                }
             }
-        });
-        return branchCompletableFuture;
+        return branchCompletableFuture
+    }
+
+    companion object {
+        const val PATH_TO_BRANCHES = "branches"
     }
 }

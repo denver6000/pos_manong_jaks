@@ -21,6 +21,14 @@ public class Branch implements Parcelable {
     public Branch() {
     }
 
+    public Branch(@NonNull String branch_id, String branch_location, String branch_contact, String branch_manager, String branch_name) {
+        this.branch_id = branch_id;
+        this.branch_location = branch_location;
+        this.branch_contact = branch_contact;
+        this.branch_manager = branch_manager;
+        this.branch_name = branch_name;
+    }
+
     protected Branch(Parcel in) {
         branch_contact = in.readString();
         branch_id = in.readString();

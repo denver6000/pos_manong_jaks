@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/home_navigation"
-    app:startDestination="@id/sales_view">
+    app:startDestination="@id/salesHistoryFragment">
 
     <fragment
         android:id="@+id/manage_sales"
@@ -45,7 +45,7 @@
     <fragment
         android:id="@+id/stockViewerFragment"
         android:name="com.denproj.posmanongjaks.fragments.branch.StockViewerFragment"
-        android:label="fragment_stock_viewer"
+        android:label="Item Stocks"
         tools:layout="@layout/fragment_stock_viewer" />
     <fragment
         android:id="@+id/salesHistoryFragment"
@@ -58,4 +58,9 @@
         tools:layout="@layout/activity_print" >
         <argument android:name="printStr" />
     </activity>
+    <fragment
+        android:id="@+id/stock_report_fragment"
+        android:name="com.denproj.posmanongjaks.fragments.stock_report.StockReportFragment"
+        android:label="Stock Report"
+        tools:layout="@layout/fragment_stock_report" />
 </navigation>

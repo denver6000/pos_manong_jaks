@@ -57,21 +57,21 @@ public class SalesRecyclerViewAdapter extends RecyclerView.Adapter<SalesRecycler
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        SalesWithProductCardBinding binding = holder.binding;
-        Sale sales = salesWithProducts.get(position);
-        binding.setSale(sales);
-
-        binding.setChange(sales.getChange());
-        binding.setTotal(sales.getTotal());
-        binding.setPaymentAmount(sales.getPaidAmount());
-        Calendar.getInstance().set(sales.getYear(), sales.getMonth(), sales.getDay());
-        Date date = Calendar.getInstance().getTime();
-
-        binding.setFormattedDate(formatDate(date));
-
-        binding.getRoot().setOnClickListener(view -> new SaleBreakDownDialog(sales).show(fragmentActivity, ""));
-
-        Calendar.getInstance().clear();
+//        SalesWithProductCardBinding binding = holder.binding;
+//        Sale sales = salesWithProducts.get(position);
+//        binding.setSale(sales);
+//
+//        binding.setChange(sales.change);
+//        binding.setTotal(sales.total);
+//        binding.setPaymentAmount(sales.paidAmount);
+//        Calendar.getInstance().set(sales.year, sales.month, sales.day);
+//        Date date = Calendar.getInstance().getTime();
+//
+//        binding.setFormattedDate(formatDate(date));
+//
+//        binding.getRoot().setOnClickListener(view -> new SaleBreakDownDialog(sales).show(fragmentActivity, ""));
+//
+//        Calendar.getInstance().clear();
 
     }
 

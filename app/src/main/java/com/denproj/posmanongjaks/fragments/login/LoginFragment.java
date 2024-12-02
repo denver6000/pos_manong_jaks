@@ -14,6 +14,7 @@ import androidx.navigation.fragment.NavHostFragment;
 
 import com.denproj.posmanongjaks.databinding.FragmentLoginBinding;
 import com.denproj.posmanongjaks.dialog.LoadingDialog;
+import com.denproj.posmanongjaks.session.SessionSimple;
 import com.denproj.posmanongjaks.util.OnLoginSuccessful;
 import com.denproj.posmanongjaks.viewModel.LoginFragmentViewmodel;
 import com.denproj.posmanongjaks.viewModel.MainViewModel;
@@ -56,10 +57,10 @@ public class LoginFragment extends Fragment implements OnLoginSuccessful {
         loadingDialog.show(getChildFragmentManager(), "");
         LoginFragment.this.loginFragmentViewmodel.firebaseLogin(new LoginFragmentViewmodel.IsFirebaseAuthCachePresent() {
             @Override
-            public void cachePresent() {
+            public void cachePresent(@NonNull SessionSimple sessionSimple) {
                 Toast.makeText(requireContext(), "Previous Login Detected", Toast.LENGTH_SHORT).show();
                 loadingDialog.dismiss();
-                navController.navigate(LoginFragmentDirections.actionLoginFragmentToHomeActivity());
+                navController.navigate(LoginFragmentDirections.actionLoginFragmentToHomeActivity(sessionSimple.getUserId(), sessionSimple.getName(), sessionSimple.getBranchName(), sessionSimple.getBranchId(), sessionSimple.getRoleName()));
             }
 
             @Override
@@ -74,13 +75,13 @@ public class LoginFragment extends Fragment implements OnLoginSuccessful {
     }
 
     @Override
-    public void onLoginSuccess() {
-        navController.navigate(LoginFragmentDirections.actionLoginFragmentToHomeActivity());
+    public void onLoginSuccess(SessionSimple sessionSimple) {
+        navController.navigate(LoginFragmentDirections.actionLoginFragmentToHomeActivity(sessionSimple.getUserId(), sessionSimple.getName(), sessionSimple.getBranchName(), sessionSimple.getBranchId(), sessionSimple.getRoleName()));
     }
 
     @Override
     public void onLoginFailed(Exception e) {
-        Toast.makeText(requireContext(), e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+        Toast.makeText(requireContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
     }
 
     @Override

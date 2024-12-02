@@ -1,191 +1,220 @@
-package com.denproj.posmanongjaks.repository.firebaseImpl;
+package com.denproj.posmanongjaks.repository.firebaseImpl
 
-import androidx.annotation.NonNull;
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.LiveData
+import com.denproj.posmanongjaks.model.CompleteSaleInfo
+import com.denproj.posmanongjaks.model.Item
+import com.denproj.posmanongjaks.model.ProductWrapper
+import com.denproj.posmanongjaks.model.Recipe
+import com.denproj.posmanongjaks.model.Sale
+import com.denproj.posmanongjaks.model.Sale.Companion.generateId
+import com.denproj.posmanongjaks.model.SaleItem
+import com.denproj.posmanongjaks.model.SaleProduct
+import com.denproj.posmanongjaks.repository.base.SaleRepository
+import com.denproj.posmanongjaks.util.OnDataReceived
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.getValue
+import kotlinx.coroutines.tasks.await
+import java.util.Random
 
-import com.denproj.posmanongjaks.model.CompleteSaleInfo;
-import com.denproj.posmanongjaks.model.Item;
-import com.denproj.posmanongjaks.model.ProductWrapper;
-import com.denproj.posmanongjaks.model.Sale;
-import com.denproj.posmanongjaks.model.SaleItem;
-import com.denproj.posmanongjaks.model.SaleProduct;
-import com.denproj.posmanongjaks.repository.base.SaleRepository;
-import com.denproj.posmanongjaks.util.OnFetchFailed;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
-
-public class FirebaseSaleRepository implements SaleRepository {
-    public static final String PATH_TO_SALE_RECORD = "sales_record";
-    FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
-    @Override
-    public void processSale(String branchId, HashMap<Long, ProductWrapper> selectedProducts, HashMap<Item, Integer> selectedAddOns, int year, int month, int day, Double total, Double amountToBePaid, OnSaleStatus saleStatus) {
-        validateSale(branchId, selectedProducts, selectedAddOns, new OnSaleValidation() {
-            @Override
-            public void canProceed(Map<String, Object> itemsToReduceStock) {
-                reduceSaleStock(branchId, itemsToReduceStock, new StockReductionStatus() {
-                    @Override
-                    public void onSuccess() {
-                        Sale saleRecord = new Sale();
-                        saleRecord.setSaleId(Integer.valueOf(generateId()));
-                        Double change = amountToBePaid - total;
-                        saleRecord.setChange(change);
-                        saleRecord.setTotal(total);
-                        saleRecord.setMonth(month);
-                        saleRecord.setDay(day);
-                        saleRecord.setYear(year);
-                        saleRecord.setPaidAmount(amountToBePaid);
-                        saleRecord.setBranchId(branchId);
+class FirebaseSaleRepository : SaleRepository {
+    var firebaseDatabase: FirebaseDatabase = FirebaseDatabase.getInstance()
+    override fun processSale(
+        branchId: String,
+        selectedProducts: HashMap<Long, ProductWrapper>,
+        selectedAddOns: HashMap<Item, Int>,
+        year: Int,
+        month: Int,
+        day: Int,
+        total: Double,
+        amountToBePaid: Double,
+        onSaleStatus: OnSaleStatus
+    ) {
+        validateSale(branchId, selectedProducts, selectedAddOns, object : OnSaleValidation {
+            override fun canProceed(itemsToReduceStock: Map<String?, Any?>) {
+                reduceSaleStock(branchId, itemsToReduceStock, object : StockReductionStatus {
+                    override fun onSuccess() {
+                        val saleRecord = Sale()
+                        saleRecord.saleId = generateId().toInt()
+                        val change = amountToBePaid - total
+                        saleRecord.change = change
+                        saleRecord.total = total
+                        saleRecord.paidAmount = amountToBePaid
+                        saleRecord.branchId = branchId
 
 
-                        insertSale(saleRecord, selectedProducts, selectedAddOns, saleStatus);
+                        insertSale(saleRecord, selectedProducts, selectedAddOns, onSaleStatus)
                     }
 
-                    @Override
-                    public void onFailed(Exception e) {
-                        saleStatus.failed(e, new HashMap<>());
+                    override fun onFailed(e: Exception?) {
+                        onSaleStatus.failed(e, HashMap())
                     }
-                });
+                })
             }
 
-            @Override
-            public void cannotProceed(HashMap<String, String> itemsWithErrors) {
-                saleStatus.failed(null, itemsWithErrors);
+            override fun cannotProceed(itemsWithErrors: HashMap<String?, String?>?) {
+                onSaleStatus.failed(null, itemsWithErrors)
             }
-        });
+        })
     }
 
-    public void validateSale(String branchId, HashMap<Long, ProductWrapper> selectedProducts, HashMap<Item, Integer> selectedAddOns, OnSaleValidation saleValidation) {
-        HashMap<Integer, Integer> idAndAmountToReduce = new HashMap<>();
-        HashMap<String, String> itemsFailed = new HashMap<>();
-        Map<String, Object> batchRequest = new HashMap<>();
+    fun validateSale(
+        branchId: String,
+        selectedProducts: HashMap<Long, ProductWrapper>,
+        selectedAddOns: HashMap<Item, Int>,
+        saleValidation: OnSaleValidation
+    ) {
+        val idAndAmountToReduce = HashMap<Int, Int>()
+        val itemsFailed = HashMap<String?, String?>()
+        val batchRequest: MutableMap<String?, Any?> = HashMap()
 
-        selectedProducts.forEach((aLong, productWrapper) -> {
-            productWrapper.getProduct().getRecipes().forEach((s, recipe) -> {
-                int recipeItemKey = Integer.parseInt(s);
-                idAndAmountToReduce.compute(recipeItemKey, (k, v) -> (v == null) ? (recipe.getAmount() * productWrapper.getAddOnAmount()) : v + recipe.getAmount());
-            });
-        });
+        selectedProducts.forEach { (aLong: Long?, productWrapper: ProductWrapper?) ->
+            productWrapper.product.recipes!!.forEach { (s: String?, recipe: Recipe?) ->
+                val recipeItemKey = s.toInt()
+                idAndAmountToReduce.compute(recipeItemKey) { k: Int?, v: Int? -> if ((v == null)) (recipe.amount!! * productWrapper.addOnAmount) else v + recipe.amount!! }
+            }
+        }
 
-        selectedAddOns.forEach((item, integer) -> {
-            idAndAmountToReduce.compute(item.getItem_id(), (k, v) -> (v == null) ? integer : v + integer);
-        });
+        selectedAddOns.forEach { (item: Item?, integer: Int?) ->
+            idAndAmountToReduce.compute(item.item_id) { k: Int?, v: Int? -> if ((v == null)) integer else v + integer }
+        }
 
         firebaseDatabase
-                .getReference(FirebaseItemRepository.PATH_TO_ITEMS_LIST + "/" + branchId)
-                .get()
-                .addOnSuccessListener(items -> {
-                    for (Map.Entry<Integer, Integer> idAndAmount : idAndAmountToReduce.entrySet()) {
-                        Integer key = idAndAmount.getKey();
-                        Integer amountToReduce = idAndAmount.getValue();
+            .getReference(FirebaseItemRepository.PATH_TO_ITEMS_LIST + "/" + branchId)
+            .get()
+            .addOnSuccessListener { items: DataSnapshot ->
+                for ((key, amountToReduce) in idAndAmountToReduce) {
+                    if (!items.hasChild(key.toString())) {
+                        itemsFailed[key.toString() + ""] =
+                            " does not exist in your branch. Contact Branch Manager to configure."
+                        continue
+                    }
+                    val itemName = items.child("$key/item_name").getValue(
+                        String::class.java
+                    )
 
-                        if (!items.hasChild(key.toString())) {
-                            itemsFailed.put(key + "", " does not exist in your branch. Contact Branch Manager to configure.");
-                            continue;
-                        }
-                        String itemName = items.child(key + "/item_name").getValue(String.class);
+                    val itemQuantitySnapshot = items.child("$key/item_quantity")
+                    val itemQuantityVal =
+                        itemQuantitySnapshot.getValue(Int::class.java)
 
-                        DataSnapshot itemQuantitySnapshot = items.child(key + "/item_quantity");
-                        Integer itemQuantityVal = itemQuantitySnapshot.getValue(Integer.class);
-
-                        if (!itemQuantitySnapshot.exists() || itemQuantityVal == null) {
-                            itemsFailed.put(itemName, " [Item Quantity] is not configured correctly.");
-                            continue;
-                        }
-
-                        if (itemQuantityVal < amountToReduce) {
-                            int discrepancy = amountToReduce - itemQuantityVal;
-                             itemsFailed.put(itemName, " Item Quantity (Stock) is not enough to fulfil order. " + discrepancy + " is needed.");
-                            continue;
-                        }
-
-                        batchRequest.put(key + "/" + "item_quantity", itemQuantityVal - amountToReduce);
+                    if (!itemQuantitySnapshot.exists() || itemQuantityVal == null) {
+                        itemsFailed[itemName] = " [Item Quantity] is not configured correctly."
+                        continue
                     }
 
-                    if (itemsFailed.isEmpty()) {
-                        saleValidation.canProceed(batchRequest);
-                    } else {
-                        saleValidation.cannotProceed(itemsFailed);
+                    if (itemQuantityVal < amountToReduce) {
+                        val discrepancy = amountToReduce - itemQuantityVal
+                        itemsFailed[itemName] =
+                            " Item Quantity (Stock) is not enough to fulfil order. $discrepancy is needed."
+                        continue
                     }
-                }).addOnFailureListener(e -> saleValidation.cannotProceed(new HashMap<>()));
+
+                    batchRequest["$key/item_quantity"] = itemQuantityVal - amountToReduce
+                }
+                if (itemsFailed.isEmpty()) {
+                    saleValidation.canProceed(batchRequest)
+                } else {
+                    saleValidation.cannotProceed(itemsFailed)
+                }
+            }.addOnFailureListener { e: Exception? -> saleValidation.cannotProceed(HashMap()) }
     }
 
-    public void reduceSaleStock(String branchId, Map<String, Object> pathAndAmountToReduce, StockReductionStatus stockReductionStatus) {
-        DatabaseReference itemsRef = firebaseDatabase.getReference(FirebaseItemRepository.PATH_TO_ITEMS_LIST + "/" + branchId);
+    fun reduceSaleStock(
+        branchId: String,
+        pathAndAmountToReduce: Map<String?, Any?>,
+        stockReductionStatus: StockReductionStatus
+    ) {
+        val itemsRef =
+            firebaseDatabase.getReference(FirebaseItemRepository.PATH_TO_ITEMS_LIST + "/" + branchId)
         itemsRef.updateChildren(pathAndAmountToReduce)
-                .addOnFailureListener(stockReductionStatus::onFailed);
-        stockReductionStatus.onSuccess();
+            .addOnFailureListener { e: Exception? -> stockReductionStatus.onFailed(e) }
+        stockReductionStatus.onSuccess()
     }
 
-    public void insertSale(Sale sale, HashMap<Long, ProductWrapper> selectedProducts, HashMap<Item, Integer> selectedAddOns, OnSaleStatus onSaleStatus) {
-        List<SaleItem> saleItems = new ArrayList<>();
-        List<SaleProduct> saleProducts = new ArrayList<>();
-        selectedProducts.forEach((aLong, productWrapper) -> {
-            saleProducts.add(new SaleProduct(productWrapper.getProduct().getProduct_id(), productWrapper.getAddOnAmount().intValue(), sale.getSaleId(), productWrapper.getProduct().getProduct_name()));
-        });
-        selectedAddOns.forEach((item, integer) -> {
-            saleItems.add(new SaleItem(item.getItem_id(), sale.getSaleId(), integer, item.getItem_name()));
-        });
-        sale.setSoldProducts(saleProducts);
-        sale.setSoldItems(saleItems);
-        onSaleStatus.success(new CompleteSaleInfo(sale, saleItems, saleProducts));
-        firebaseDatabase.getReference(PATH_TO_SALE_RECORD + "/" + sale.getBranchId() + "/" + sale.getSaleId()).setValue(sale);
+    fun insertSale(
+        sale: Sale,
+        selectedProducts: HashMap<Long, ProductWrapper>,
+        selectedAddOns: HashMap<Item, Int>,
+        onSaleStatus: OnSaleStatus
+    ) {
+        val saleItems: MutableList<SaleItem> = ArrayList()
+        val saleProducts: MutableList<SaleProduct> = ArrayList()
+        selectedProducts.forEach { (aLong: Long?, productWrapper: ProductWrapper?) ->
+            saleProducts.add(
+                SaleProduct(
+                    productWrapper.product.product_id,
+                    productWrapper.addOnAmount,
+                    sale.saleId,
+                    productWrapper.product.product_name
+                )
+            )
+        }
+        selectedAddOns.forEach { (item: Item?, integer: Int?) ->
+            saleItems.add(SaleItem(item.item_id, sale.saleId, integer, item.item_name))
+        }
+        onSaleStatus.success(CompleteSaleInfo(sale, saleItems, saleProducts))
+        firebaseDatabase.getReference(PATH_TO_SALE_RECORD + "/" + sale.branchId + "/" + sale.saleId)
+            .setValue(sale)
     }
 
-    @Override
-    public LiveData<List<SaleItem>> getAllAddOnsWithSaleId(Integer saleId) {
-        return null;
+    override fun getAllAddOnsWithSaleId(saleId: Int): LiveData<List<SaleItem>> {
+        throw NotImplementedError()
     }
 
-    @Override
-    public LiveData<List<SaleProduct>> getAllProductsWithSaleId(Integer saleId) {
-        return null;
-    }
-    @Override
-
-    public LiveData<List<Sale>> getAllRecordedSalesOnBranch(String branchId, OnFetchFailed onFetchFailed) {
-        MutableLiveData<List<Sale>> branchSalesRecords = new MutableLiveData<>();
-        List<Sale> recordedSales = new ArrayList<>();
-        firebaseDatabase.getReference(PATH_TO_SALE_RECORD + "/" + branchId).get().addOnSuccessListener(dataSnapshot -> {
-            dataSnapshot.getChildren().forEach(saleSnapshot -> {
-                Sale sale = saleSnapshot.getValue(Sale.class);
-                recordedSales.add(sale);
-            });
-            branchSalesRecords.setValue(recordedSales);
-        }).addOnFailureListener(onFetchFailed::onFetchFailed);
-        return branchSalesRecords;
+    override fun getAllProductsWithSaleId(saleId: Int): LiveData<List<SaleProduct>> {
+        throw NotImplementedError()
     }
 
-    public String generateId() {
-        Random random = new Random();
-        int randomSixDigit = 100000 + random.nextInt(900000);
-        return "10" + randomSixDigit;
+    override fun getAllRecordedSalesOnBranch(branchId: String, onDataFetched: OnDataReceived<List<Sale>>) {
+        firebaseDatabase.getReference("$PATH_TO_SALE_RECORD/$branchId").get()
+            .addOnSuccessListener { dataSnapshot: DataSnapshot ->
+                val salesList: ArrayList<Sale> = ArrayList()
+                for (child in dataSnapshot.children) {
+                    val sale = child.getValue(Sale::class.java)
+                    if (sale != null) {
+                        salesList.add(sale)
+                    }
+                }
+                onDataFetched.onSuccess(salesList)
+            }
     }
 
-    public interface OnSaleValidation {
-        void canProceed(Map<String, Object> itemsToReduceStock);
-        void cannotProceed(HashMap<String, String> itemsWithErrors);
+    override suspend fun getAllSales(branchId: String): List<Sale> {
+        return try {
+            val salesRef = firebaseDatabase.getReference("$PATH_TO_SALE_RECORD/$branchId");
+            val snapshot = salesRef.get().await()
+
+            val salesList: ArrayList<Sale> = ArrayList()
+
+            snapshot.children.forEach {
+                val sale = it.getValue<Sale>()
+                salesList.add(sale!!)
+            }
+
+            salesList
+        } catch (e: Exception) {
+            emptyList()
+        }
     }
 
-    public interface OnSaleStatus {
-        void success(CompleteSaleInfo completeSaleInfo);
-        void failed(Exception fatalExceptions, HashMap<String, String> itemNameAndError);
+
+
+    interface OnSaleValidation {
+        fun canProceed(itemsToReduceStock: Map<String?, Any?>)
+        fun cannotProceed(itemsWithErrors: HashMap<String?, String?>?)
     }
 
-    public interface StockReductionStatus {
-        void onSuccess();
-        void onFailed(Exception e);
+    interface OnSaleStatus {
+        fun success(completeSaleInfo: CompleteSaleInfo?)
+        fun failed(fatalExceptions: Exception?, itemNameAndError: HashMap<String?, String?>?)
     }
 
+    interface StockReductionStatus {
+        fun onSuccess()
+        fun onFailed(e: Exception?)
+    }
+
+    companion object {
+        const val PATH_TO_SALE_RECORD: String = "sales_record"
+    }
 }

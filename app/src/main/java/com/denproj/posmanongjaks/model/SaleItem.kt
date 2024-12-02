@@ -1,77 +1,23 @@
-package com.denproj.posmanongjaks.model;
-
-import androidx.annotation.NonNull;
-import androidx.room.Entity;
-import androidx.room.ForeignKey;
-import androidx.room.PrimaryKey;
-
-@Entity(foreignKeys = {
-        @ForeignKey(entity = Sale.class, childColumns = "saleId", parentColumns = "saleId"),
-        @ForeignKey(entity = Item.class, childColumns = "item_id", parentColumns = "item_id")})
-public class SaleItem {
+package com.denproj.posmanongjaks.model
 
 
-    @PrimaryKey(autoGenerate = true)
-    int saleItemId;
-    int item_id;
-    Integer saleId;
-    int amount;
+class SaleItem {
+    var item_id: Int = 0
+    var saleId: Int? = null
+    var amount: Int = 0
 
-    String itemName;
+    var itemName: String? = null
 
-    public SaleItem() {
+    constructor()
+
+    constructor(item_id: Int, saleId: Int?, amount: Int, itemName: String?) {
+        this.item_id = item_id
+        this.saleId = saleId
+        this.amount = amount
+        this.itemName = itemName
     }
 
-    public SaleItem(int item_id, Integer saleId, int amount, String itemName) {
-        this.item_id = item_id;
-        this.saleId = saleId;
-        this.amount = amount;
-        this.itemName = itemName;
-    }
-
-    public int getSaleItemId() {
-        return saleItemId;
-    }
-
-    public void setSaleItemId(int saleItemId) {
-        this.saleItemId = saleItemId;
-    }
-
-    public int getItem_id() {
-        return item_id;
-    }
-
-    public void setItem_id(int item_id) {
-        this.item_id = item_id;
-    }
-
-    public Integer getSaleId() {
-        return saleId;
-    }
-
-    public void setSaleId(Integer saleId) {
-        this.saleId = saleId;
-    }
-
-    public int getAmount() {
-        return amount;
-    }
-
-    public void setAmount(int amount) {
-        this.amount = amount;
-    }
-
-    public String getItemName() {
-        return itemName;
-    }
-
-    public void setItemName(String itemName) {
-        this.itemName = itemName;
-    }
-
-    @NonNull
-    @Override
-    public String toString() {
-        return this.itemName;
+    override fun toString(): String {
+        return itemName!!
     }
 }

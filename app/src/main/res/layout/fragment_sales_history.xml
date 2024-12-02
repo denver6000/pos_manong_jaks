@@ -1,13 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".fragments.sales.SalesHistoryFragment'">
+    android:orientation="vertical"
+    tools:context=".fragments.sales.SalesHistoryFragment">
 
+    <androidx.compose.ui.platform.ComposeView
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/salesFromDatabase"
+        android:id="@+id/salesComposeView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
-</FrameLayout>
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/cartesian_chart_view">
+
+    </androidx.compose.ui.platform.ComposeView>
+</LinearLayout>

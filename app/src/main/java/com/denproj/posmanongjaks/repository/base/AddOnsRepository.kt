@@ -1,17 +1,16 @@
-package com.denproj.posmanongjaks.repository.base;
+package com.denproj.posmanongjaks.repository.base
 
-import androidx.lifecycle.MutableLiveData;
+import com.denproj.posmanongjaks.model.Item
+import com.denproj.posmanongjaks.util.OnDataReceived
+import com.google.firebase.firestore.FirebaseFirestore
 
-import com.denproj.posmanongjaks.model.Item;
-import com.denproj.posmanongjaks.util.OnFetchFailed;
+interface AddOnsRepository {
+    suspend fun observeAddOnsList(branchId: String, onDataReceived: OnDataReceived<List<Item?>?>?) {
+        throw NotImplementedError()
+    }
 
-import java.util.List;
-
-import kotlin.NotImplementedError;
-
-public interface AddOnsRepository {
-
-    default MutableLiveData<List<Item>> observeAddOnsList(String branchId, OnFetchFailed onFetchFailed) {
-        throw new NotImplementedError();
+    fun observeAddOnsList(branch: String, onListFetched: (addOnsList: List<Item>) -> Unit) {
+        val firestore = FirebaseFirestore.getInstance()
+        val addOns = firestore.collection("branch_items").document(branch)
     }
 }

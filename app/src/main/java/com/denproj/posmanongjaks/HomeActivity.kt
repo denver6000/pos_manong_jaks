@@ -1,156 +1,133 @@
-package com.denproj.posmanongjaks;
+package com.denproj.posmanongjaks
 
-import static com.denproj.posmanongjaks.repository.firebaseImpl.FirebaseItemRepository.PATH_TO_ITEMS_LIST;
-import static com.denproj.posmanongjaks.repository.firebaseImpl.FirebaseProductRepository.PATH_TO_BRANCH_PRODUCTS;
-
-import android.Manifest;
-import android.content.pm.PackageManager;
-import android.os.Bundle;
-import android.widget.Toast;
-
-import androidx.activity.EdgeToEdge;
-import androidx.activity.result.ActivityResultCallback;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.ViewModelProvider;
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
-import androidx.navigation.fragment.NavHostFragment;
-import androidx.navigation.ui.AppBarConfiguration;
-import androidx.navigation.ui.NavigationUI;
-
-import com.denproj.posmanongjaks.databinding.ActivityHomeBinding;
-import com.denproj.posmanongjaks.session.Session;
-import com.denproj.posmanongjaks.viewModel.HomeActivityViewmodel;
-import com.google.android.material.navigation.NavigationView;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
-
-import java.util.Map;
-
-import dagger.hilt.android.AndroidEntryPoint;
+import android.Manifest
+import android.content.DialogInterface
+import android.content.pm.PackageManager
+import android.os.Bundle
+import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.navigation.Navigation.findNavController
+import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.navArgs
+import androidx.navigation.ui.AppBarConfiguration
+import androidx.navigation.ui.NavigationUI.navigateUp
+import androidx.navigation.ui.NavigationUI.setupActionBarWithNavController
+import androidx.navigation.ui.NavigationUI.setupWithNavController
+import com.denproj.posmanongjaks.databinding.ActivityHomeBinding
+import com.denproj.posmanongjaks.databinding.NavHeaderBinding
+import com.denproj.posmanongjaks.repository.firebaseImpl.FirebaseItemRepository
+import com.denproj.posmanongjaks.repository.firebaseImpl.FirebaseProductRepository
+import com.denproj.posmanongjaks.session.SessionSimple
+import com.denproj.posmanongjaks.viewModel.HomeActivityViewmodel
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.FirebaseDatabase
+import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-public class HomeActivity extends AppCompatActivity {
+class HomeActivity : AppCompatActivity() {
 
-    private AppBarConfiguration appBarConfiguration;
-    private HomeActivityViewmodel homeActivityViewmodel;
+    private var appBarConfiguration: AppBarConfiguration? = null
+    private val homeActivityViewmodel: HomeActivityViewmodel by viewModels()
+    private lateinit var binding: ActivityHomeBinding
+    private val homeActArgs by navArgs<HomeActivityArgs>()
 
-    ActivityResultLauncher<String[]> requestBluetoothPerms = registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), new ActivityResultCallback<Map<String, Boolean>>() {
-        @Override
-        public void onActivityResult(Map<String, Boolean> o) {
-            o.forEach((permission, isAllowed) -> {
-                if (isAllowed) {
-                    if (shouldShowRequestPermissionRationale(permission)) {
-                        showDialog(permission).show();
-                    }
+    var requestBluetoothPerms = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) {
+        it.forEach { (permission: String, isAllowed: Boolean) ->
+            if (isAllowed) {
+                if (shouldShowRequestPermissionRationale(permission)) {
+                    showDialog(permission).show()
                 }
-            });
-        }
-    });
-
-
-    MutableLiveData<Session> sessionMutableLiveData;
-
-    String[] permissions = new String[] {
-            Manifest.permission.BLUETOOTH,
-            Manifest.permission.BLUETOOTH_ADMIN,
-            Manifest.permission.BLUETOOTH_CONNECT,
-            Manifest.permission.BLUETOOTH_SCAN};
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
-        ActivityHomeBinding binding = ActivityHomeBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
-        this.homeActivityViewmodel = new ViewModelProvider(this).get(HomeActivityViewmodel.class);
-
-        if (!hasPermissions()) {
-            requestBluetoothPerms.launch(permissions);
-        }
-
-        this.sessionMutableLiveData = this.homeActivityViewmodel.sessionMutableLiveData;
-        homeActivityViewmodel.getSession().thenAccept(session -> {
-            DatabaseReference connectedRef = FirebaseDatabase.getInstance().getReference("/.info/connected");
-            connectedRef.addValueEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    boolean connected = snapshot.getValue(Boolean.class);
-                    session.setConnectionReachable(connected);
-                    loadSession(session);
-                    Toast.makeText(HomeActivity.this, "You Are Online", Toast.LENGTH_SHORT).show();
-                }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
-                    session.setConnectionReachable(false);
-                    loadSession(session);
-                    Toast.makeText(HomeActivity.this, "Error Detecting network status", Toast.LENGTH_SHORT).show();
-                }
-            });
-        });
-
-        DrawerLayout layout = binding.main;
-        NavigationView navigationView = binding.navView;
-        setSupportActionBar(binding.toolbar);
-
-        appBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.stock_view,
-                R.id.sales_view,
-                R.id.salesHistoryFragment,
-                R.id.settings).setOpenableLayout(layout).build();
-
-        NavController navController = ((NavHostFragment)getSupportFragmentManager().findFragmentById(R.id.homeFragmentContainerView)).getNavController();
-        NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
-        NavigationUI.setupWithNavController(navigationView, navController);
-    }
-
-    public boolean hasPermissions() {
-        for (String permission : permissions) {
-            if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
-                return false;
             }
         }
-        return true;
     }
-    @Override
-    public boolean onSupportNavigateUp() {
-        NavController navController = Navigation.findNavController(this, R.id.homeFragmentContainerView);
-        return NavigationUI.navigateUp(navController, appBarConfiguration)
-                || super.onSupportNavigateUp();
+    var permissions = arrayOf(
+        Manifest.permission.BLUETOOTH,
+        Manifest.permission.BLUETOOTH_ADMIN,
+        Manifest.permission.BLUETOOTH_CONNECT,
+        Manifest.permission.BLUETOOTH_SCAN
+    )
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        this.enableEdgeToEdge()
+        binding = ActivityHomeBinding.inflate(
+            layoutInflater
+        )
+        setContentView(binding.getRoot())
+        if (!hasPermissions()) {
+            requestBluetoothPerms.launch(permissions)
+        }
+
+        loadSession(SessionSimple(userId = homeActArgs.userId, branchId = homeActArgs.branchId, branchName = homeActArgs.branchName, name = homeActArgs.username, roleName = homeActArgs.roleName))
+
+        val layout = binding.main
+        val navigationView = binding.navView
+        setSupportActionBar(binding.toolbar)
+        appBarConfiguration = AppBarConfiguration.Builder(
+            R.id.stock_view,
+            R.id.sales_view,
+            R.id.salesHistoryFragment,
+            R.id.stock_report_fragment,
+            R.id.settings
+        ).setOpenableLayout(layout).build()
+        val navController =
+            (supportFragmentManager.findFragmentById(R.id.homeFragmentContainerView) as NavHostFragment?)!!.navController
+        setupActionBarWithNavController(this, navController, appBarConfiguration!!)
+        setupWithNavController(navigationView, navController)
     }
 
-    private AlertDialog showDialog(String permission) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setPositiveButton("Ok", (dialogInterface, i) -> {
-
-        });
-        builder.setTitle("Permission " + permission + " is required for printing function. Please allow in settings");
-        builder.setMessage("It seems that you have rejected bluetooth permissions which prevents the app from contacting a printer.");
-
-        return builder.create();
+    fun hasPermissions(): Boolean {
+        for (permission in permissions) {
+            if (ContextCompat.checkSelfPermission(
+                    this,
+                    permission
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                return false
+            }
+        }
+        return true
     }
 
-    private void loadSession(Session session) {
-        sessionMutableLiveData.setValue(session);
-
-        String branchId = session.getBranch().getBranch_id();
-
-        DatabaseReference itemsOnBranches = FirebaseDatabase.getInstance().getReference(PATH_TO_ITEMS_LIST + "/" + branchId);
-        itemsOnBranches.keepSynced(true);
-
-        DatabaseReference productsOnBranches = FirebaseDatabase.getInstance().getReference(PATH_TO_BRANCH_PRODUCTS + "/" + branchId);
-        productsOnBranches.keepSynced(true);
+    override fun onSupportNavigateUp(): Boolean {
+        val navController = findNavController(this, R.id.homeFragmentContainerView)
+        return (navigateUp(navController, appBarConfiguration!!)
+                || super.onSupportNavigateUp())
     }
 
+    private fun showDialog(permission: String): AlertDialog {
+        val builder = AlertDialog.Builder(this)
+        builder.setPositiveButton("Ok") { dialogInterface: DialogInterface?, i: Int -> }
+        builder.setTitle("Permission $permission is required for printing function. Please allow in settings")
+        builder.setMessage("It seems that you have rejected bluetooth permissions which prevents the app from contacting a printer.")
+        return builder.create()
+    }
+
+    private fun loadSession(session: SessionSimple) {
+        val email = FirebaseAuth.getInstance().currentUser!!.email!!
+        val username = session.name!!
+         loadCredentialsToUI(username, email)
+        this@HomeActivity.homeActivityViewmodel.saveSession(SessionSimple(session.userId, session.name, session.branchId, session.branchName, session.roleName))
+        this@HomeActivity
+            .homeActivityViewmodel.updateLiveSession(session)
+        val branchId = session.branchId
+        val itemsOnBranches = FirebaseDatabase.getInstance()
+            .getReference(FirebaseItemRepository.PATH_TO_ITEMS_LIST + "/" + branchId)
+        itemsOnBranches.keepSynced(true)
+        val productsOnBranches = FirebaseDatabase.getInstance()
+            .getReference(FirebaseProductRepository.PATH_TO_BRANCH_PRODUCTS + "/" + branchId)
+        productsOnBranches.keepSynced(true)
+    }
+
+    private fun loadCredentialsToUI(staffName: String, staffEmail: String) {
+        val headerBinding: NavHeaderBinding = NavHeaderBinding.bind(binding.navView.getHeaderView(0))
+        headerBinding.staffName = staffName
+        headerBinding.staffEmail = staffEmail
+    }
 }

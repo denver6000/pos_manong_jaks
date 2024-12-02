@@ -1,201 +1,224 @@
-package com.denproj.posmanongjaks.fragments.sales;
+package com.denproj.posmanongjaks.fragments.sales
 
-import android.app.AlertDialog;
-import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Toast;
-
-import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
-import com.denproj.posmanongjaks.R;
-import com.denproj.posmanongjaks.adapter.AddOnRecyclerViewAdapter;
-import com.denproj.posmanongjaks.adapter.ProductsRecyclerViewAdapter;
-import com.denproj.posmanongjaks.databinding.FragmentSalesViewBinding;
-import com.denproj.posmanongjaks.dialog.CheckOutDialogFragment;
-import com.denproj.posmanongjaks.dialog.LoadingDialog;
-import com.denproj.posmanongjaks.model.Branch;
-import com.denproj.posmanongjaks.model.CompleteSaleInfo;
-import com.denproj.posmanongjaks.session.Session;
-import com.denproj.posmanongjaks.viewModel.HomeActivityViewmodel;
-import com.denproj.posmanongjaks.viewModel.MainViewModel;
-import com.denproj.posmanongjaks.viewModel.SalesFragmentViewmodel;
-
-import java.util.HashMap;
-
-import dagger.hilt.android.AndroidEntryPoint;
-
+import android.app.AlertDialog
+import android.content.DialogInterface
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.Toast
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.Navigation.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.denproj.posmanongjaks.R
+import com.denproj.posmanongjaks.adapter.AddOnRecyclerViewAdapter
+import com.denproj.posmanongjaks.adapter.ProductsRecyclerViewAdapter
+import com.denproj.posmanongjaks.databinding.FragmentSalesViewBinding
+import com.denproj.posmanongjaks.dialog.CheckOutDialogFragment
+import com.denproj.posmanongjaks.dialog.LoadingDialog
+import com.denproj.posmanongjaks.model.Branch
+import com.denproj.posmanongjaks.model.CompleteSaleInfo
+import com.denproj.posmanongjaks.model.SaleItem
+import com.denproj.posmanongjaks.model.SaleProduct
+import com.denproj.posmanongjaks.session.Session
+import com.denproj.posmanongjaks.session.SessionSimple
+import com.denproj.posmanongjaks.viewModel.HomeActivityViewmodel
+import com.denproj.posmanongjaks.viewModel.SalesFragmentViewmodel
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
+import java.util.function.Consumer
 
 @AndroidEntryPoint
-public class SalesViewFragment extends Fragment {
+class SalesViewFragment : Fragment() {
+    var productsRecyclerViewAdapter: ProductsRecyclerViewAdapter? = null
 
-    ProductsRecyclerViewAdapter productsRecyclerViewAdapter;
-    FragmentSalesViewBinding binding;
-    AddOnRecyclerViewAdapter addOnRecyclerViewAdapter;
-    HomeActivityViewmodel homeActivityViewmodel;
-    SalesFragmentViewmodel viewmodel;
+    var binding: FragmentSalesViewBinding? = null
+    var addOnRecyclerViewAdapter: AddOnRecyclerViewAdapter? = null
 
-    MainViewModel mainViewModel;
+    val homeActivityViewmodel: HomeActivityViewmodel by activityViewModels<HomeActivityViewmodel>()
+    val viewmodel: SalesFragmentViewmodel by viewModels()
 
-    LoadingDialog loadingDialog = new LoadingDialog();
+    var loadingDialog: LoadingDialog = LoadingDialog()
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        binding = FragmentSalesViewBinding.inflate(inflater)
+        setupAdapters()
+        showDialog()
 
-        binding = FragmentSalesViewBinding.inflate(inflater);
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                this@SalesViewFragment.homeActivityViewmodel.sessionStateFlow.collect {
 
-        this.viewmodel = new ViewModelProvider(requireActivity()).get(SalesFragmentViewmodel.class);
-        this.homeActivityViewmodel = new ViewModelProvider(requireActivity()).get(HomeActivityViewmodel.class);
-        this.mainViewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
-
-        setupAdapters();
-        showDialog();
-
-        this.homeActivityViewmodel.sessionMutableLiveData.observe(getViewLifecycleOwner(), session -> {
-            String branchId = session.getBranch().getBranch_id();
-            if (branchId.isEmpty()) {
-                Toast.makeText(requireContext(), "No Branch Is Associated With this account.", Toast.LENGTH_LONG).show();
-                return;
-            }
-
-            setupAddOnRcv();
-            observeAddons(branchId);
-
-            setupProductRcv(branchId);
-            observeProducts(branchId);
-
-            setupViews(session);
-        });
-
-
-        return binding.getRoot();
-    }
-
-    public void setupViews(Session session) {
-        binding.checkOutItems.setOnClickListener(view -> {
-            new CheckOutDialogFragment(session.getBranch(), productsRecyclerViewAdapter.getSelectedProducts(), addOnRecyclerViewAdapter.getItemsMap(), new CheckOutDialogFragment.OnSaleFinished() {
-                @Override
-                public void onSuccess(CompleteSaleInfo completeSaleInfo) {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-
-                    builder.setTitle("Change: " + completeSaleInfo.getSale().getChange()).setMessage("Print a receipt");
-
-                    builder.setPositiveButton("Print", (dialogInterface, i) -> {
-                        NavController navController = Navigation.findNavController(requireActivity(), R.id.homeFragmentContainerView);
-                        navController.navigate(SalesViewFragmentDirections.actionSalesViewToPrintActivity(formatReceipt(completeSaleInfo, session.getBranch(), session.getUser().getUser_id())));
-                    });
-
-                    builder.setNegativeButton("Close", (dialogInterface, i) -> {
-                        dialogInterface.dismiss();
-                    });
-
-                    builder.create().show();
-
-                    clearOrders();
-
-                }
-
-                @Override
-                public void onFail(Exception e, HashMap<String, String> itemNameAndErrors) {
-                    if (e != null) {
-                        showErrorDialog("A Fatal Error Occurred", e.getMessage());
-                    } else if (!itemNameAndErrors.isEmpty()) {
-                        itemNameAndErrors.forEach((itemName, errorMsg) -> {
-                            showErrorDialog(itemName, errorMsg);
-                        });
+                    if (it == null) {
+                        return@collect
                     }
+
+                    val branchId = it.branchId
+
+                    setupAddOnRcv()
+                    observeAddons()
+
+                    setupProductRcv(branchId)
+                    observeProducts()
+
+                    setupViews(it)
                 }
-            }).show(getChildFragmentManager(), "");
-        });
+            }
+        }
+
+        viewmodel.errors.observe(viewLifecycleOwner) { exception ->
+            Toast.makeText(requireContext(), exception?.toString() ?: "Something went wrong.", Toast.LENGTH_SHORT).show()
+
+        }
+
+        return binding!!.root
     }
 
-    public void observeProducts (String branchId) {
-        this.viewmodel.observeProductListOfBranch(branchId, e -> {
-            Toast.makeText(requireContext(), "Something went wrong " + e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
-        }).observe(getViewLifecycleOwner(), products -> {
-            productsRecyclerViewAdapter.refreshAdapter(products);
-            hideDialog();
-        });
+    fun setupViews(session: SessionSimple) {
+        binding!!.checkOutItems.setOnClickListener { view: View? ->
+            val branch = Branch(session.branchId!!, session.branchName, "Contact", "Manager", "Branch")
+            CheckOutDialogFragment(
+                branch,
+                productsRecyclerViewAdapter!!.selectedProducts,
+                addOnRecyclerViewAdapter!!.itemsMap,
+                object : CheckOutDialogFragment.OnSaleFinished {
+                    override fun onSuccess(completeSaleInfo: CompleteSaleInfo) {
+                        val builder = AlertDialog.Builder(requireContext())
+
+                        builder.setTitle("Change: " + completeSaleInfo.sale.change).setMessage("Print a receipt")
+
+                        builder.setPositiveButton("Print") { dialogInterface: DialogInterface?, i: Int ->
+                            val navController =
+                                findNavController(requireActivity(), R.id.homeFragmentContainerView)
+                            navController.navigate(
+                                SalesViewFragmentDirections.actionSalesViewToPrintActivity(
+                                    formatReceipt(
+                                        completeSaleInfo,
+                                        branch, session.userId
+                                    )
+                                )
+                            )
+                        }
+
+                        builder.setNegativeButton(
+                            "Close"
+                        ) { dialogInterface: DialogInterface, i: Int ->
+                            dialogInterface.dismiss()
+                        }
+
+                        builder.create().show()
+
+                        clearOrders()
+                    }
+
+                    override fun onFail(
+                        e: Exception,
+                        itemNameAndErrors: HashMap<String?, String?>
+                    ) {
+                        itemNameAndErrors.forEach { (itemName: String?, errorMsg: String?) ->
+                            showErrorDialog(itemName, errorMsg)
+                        }
+                    }
+
+                }).show(childFragmentManager, "")
+        }
     }
 
-    public void observeAddons(String branchId) {
-        this.viewmodel.observeAddOnsListOfBranch(branchId, e -> {
-            Toast.makeText(requireContext(), "Something went wrong " + e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
-        }).observe(getViewLifecycleOwner(), items -> {
-            addOnRecyclerViewAdapter.refreshAdapter(items);
-        });
+    fun observeProducts() {
+        viewmodel.products.observe(viewLifecycleOwner) { products ->
+            productsRecyclerViewAdapter!!.refreshAdapter(products ?: emptyList())
+            hideDialog()
+        }
     }
 
-    public void setupProductRcv(String branchId) {
-        this.productsRecyclerViewAdapter = new ProductsRecyclerViewAdapter(branchId, getChildFragmentManager());
-        binding.menuRcv.setAdapter(productsRecyclerViewAdapter);
+    fun observeAddons() {
+        viewmodel.items.observe(viewLifecycleOwner) {items ->
+            addOnRecyclerViewAdapter!!.refreshAdapter(items ?: emptyList())
+        }
     }
 
-    public void setupAddOnRcv() {
-        this.addOnRecyclerViewAdapter = new AddOnRecyclerViewAdapter();
-        this.binding.addOnList.setAdapter(addOnRecyclerViewAdapter);
+    fun setupProductRcv(branchId: String?) {
+        this.productsRecyclerViewAdapter = ProductsRecyclerViewAdapter(
+            branchId,
+            childFragmentManager
+        )
+        binding!!.menuRcv.adapter = productsRecyclerViewAdapter
+    }
+
+    fun setupAddOnRcv() {
+        this.addOnRecyclerViewAdapter = AddOnRecyclerViewAdapter()
+        binding!!.addOnList.adapter = addOnRecyclerViewAdapter
     }
 
 
-    public void setupAdapters() {
-        binding.menuRcv.setLayoutManager(new LinearLayoutManager(requireContext()));
-        LinearLayoutManager manager = new LinearLayoutManager(requireContext(), RecyclerView.HORIZONTAL, false);
-        binding.addOnList.setLayoutManager(manager);
+    fun setupAdapters() {
+        binding!!.menuRcv.layoutManager = LinearLayoutManager(requireContext())
+        val manager = LinearLayoutManager(requireContext(), RecyclerView.HORIZONTAL, false)
+        binding!!.addOnList.layoutManager = manager
     }
 
-    public void showDialog() {
-        loadingDialog.show(getChildFragmentManager(), "");
+    fun showDialog() {
+        loadingDialog.show(childFragmentManager, "")
     }
 
-    public void hideDialog() {
-        loadingDialog.dismiss();
+    fun hideDialog() {
+        loadingDialog.dismiss()
     }
 
-    public void clearOrders () {
-        productsRecyclerViewAdapter.clearSelectedProducts();
-        addOnRecyclerViewAdapter.clearSelectedItems();
-
+    fun clearOrders() {
+        productsRecyclerViewAdapter!!.clearSelectedProducts()
+        addOnRecyclerViewAdapter!!.clearSelectedItems()
     }
 
-    public String formatReceipt(CompleteSaleInfo completeSaleInfo, Branch branch, String uid) {
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("[C]<font size='big'>Manong Jak's</font>\n");
-        stringBuilder.append("[C]<font size='big'>Burger</font>");
-        stringBuilder.append("\n[C]").append(branch.getBranch_name()).append("\n").append("[L]<b>Products</b>\n");
+    fun formatReceipt(completeSaleInfo: CompleteSaleInfo, branch: Branch, uid: String?): String {
+        val stringBuilder = StringBuilder()
+        stringBuilder.append("[C]<font size='big'>Manong Jak's</font>\n")
+        stringBuilder.append("[C]<font size='big'>Burger</font>")
+        stringBuilder.append("\n[C]").append(branch.branch_name).append("\n")
+            .append("[L]<b>Products</b>\n")
 
-        completeSaleInfo.getSaleProducts().forEach(saleProduct -> {
-            stringBuilder.append("[L]").append(saleProduct.getName()).append("[R]x").append(saleProduct.getAmount()).append("\n");
-        });
+        completeSaleInfo.saleProducts.forEach(Consumer { saleProduct: SaleProduct ->
+            stringBuilder.append("[L]").append(saleProduct.name).append("[R]x")
+                .append(saleProduct.amount).append("\n")
+        })
 
-        stringBuilder.append("[L]<b>Add Ons</b>\n");
-        completeSaleInfo.getSaleItems().forEach(saleItem -> {
-            stringBuilder.append("[L]").append(saleItem.getItemName()).append("[R]x").append(saleItem.getAmount()).append("\n");
-        });
+        stringBuilder.append("[L]<b>Add Ons</b>\n")
+        completeSaleInfo.saleItems.forEach(Consumer { saleItem: SaleItem ->
+            stringBuilder.append("[L]").append(saleItem.itemName).append("[R]x")
+                .append(saleItem.amount).append("\n")
+        })
 
-        stringBuilder.append("[L]\n");
-        stringBuilder.append("[L]Total:").append("[R]").append(completeSaleInfo.getSale().getTotal()).append(" Pesos\n");
-        stringBuilder.append("[L]Change:").append("[R]").append(completeSaleInfo.getSale().getChange()).append(" Pesos\n");
-        stringBuilder.append("[L]Sale Id:").append("[R]").append(completeSaleInfo.getSale().getSaleId()).append("\n");
-        stringBuilder.append("[L]Sold By:").append("[R]UID: ").append(uid).append("\n");
-        stringBuilder.append("[C]App Generated Receipt\n");
-        return stringBuilder.toString();
+        stringBuilder.append("[L]\n")
+        stringBuilder.append("[L]Total:").append("[R]").append(completeSaleInfo.sale.total)
+            .append(" Pesos\n")
+        stringBuilder.append("[L]Change:").append("[R]").append(completeSaleInfo.sale.change)
+            .append(" Pesos\n")
+        stringBuilder.append("[L]Sale Id:").append("[R]").append(completeSaleInfo.sale.saleId)
+            .append("\n")
+        stringBuilder.append("[L]Sold By:").append("[R]UID: ").append(uid).append("\n")
+        stringBuilder.append("[C]App Generated Receipt\n")
+        return stringBuilder.toString()
     }
 
-    public void showErrorDialog(String title, String message) {
-        AlertDialog.Builder errorDialog = new AlertDialog.Builder(requireContext());
+    fun showErrorDialog(title: String?, message: String?) {
+        val errorDialog = AlertDialog.Builder(requireContext())
         errorDialog
-                .setTitle(title)
-                .setMessage(message)
-                .setPositiveButton("Okay", (dialogInterface, i) -> {
-                    dialogInterface.dismiss();
-                });
-        errorDialog.create().show();
+            .setTitle(title)
+            .setMessage(message)
+            .setPositiveButton(
+                "Okay"
+            ) { dialogInterface: DialogInterface, i: Int ->
+                dialogInterface.dismiss()
+            }
+        errorDialog.create().show()
     }
 }

@@ -1,26 +1,15 @@
-package com.denproj.posmanongjaks.viewModel;
+package com.denproj.posmanongjaks.viewModel
 
-import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.ViewModel;
-
-import javax.inject.Inject;
-
-import dagger.hilt.android.lifecycle.HiltViewModel;
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
 @HiltViewModel
-public class PrintActivityViewmodel extends ViewModel {
+class PrintActivityViewmodel @Inject constructor() : ViewModel() {
+    val stringToPrintLiveData: MutableLiveData<String> = MutableLiveData()
 
-    private MutableLiveData<String> stringToPrintLiveData = new MutableLiveData<>();
-
-    @Inject
-    public PrintActivityViewmodel() {
-    }
-
-    public MutableLiveData<String> getStringToPrintLiveData() {
-        return stringToPrintLiveData;
-    }
-
-    public void setStringToPrint(String stringToPrint) {
-        this.stringToPrintLiveData.setValue(stringToPrint);
+    fun setStringToPrint(stringToPrint: String) {
+        stringToPrintLiveData.value = stringToPrint
     }
 }

@@ -29,14 +29,14 @@ public interface SalesDao {
 
     @Query("SELECT * FROM SaleItem WHERE saleId = :saleId")
     LiveData<List<SaleItem>> getAllSaleItemWithSaleIdAsync(Integer saleId);
-    @Query("SELECT * FROM SaleProduct WHERE sale_id = :saleId")
+    @Query("SELECT * FROM SaleProduct WHERE saleId = :saleId")
     LiveData<List<SaleProduct>> getAllSaleProductWithSaleIdAsync(Integer saleId);
     @Query("SELECT * FROM Sale WHERE Sale.branchId = :branchId")
     List<Sale> getAllRecordedSalesAsync(String branchId);
 
     @Query("SELECT * FROM SaleItem WHERE saleId = :saleId")
     List<SaleItem> getAllSaleItemWithSaleIdSync(Integer saleId);
-    @Query("SELECT * FROM SaleProduct WHERE sale_id = :saleId")
+    @Query("SELECT * FROM SaleProduct WHERE saleId = :saleId")
     List<SaleProduct> getAllSaleProductWithSaleIdSync(Integer saleId);
     @Query("SELECT * FROM Sale")
     List<Sale> getAllRecordedSalesSync();
@@ -44,7 +44,7 @@ public interface SalesDao {
     void clearSales();
     @Query("DELETE FROM Sale WHERE saleId = :saleId")
     void removeSaleWithSaleId(Integer saleId);
-    @Query("DELETE FROM SaleProduct WHERE sale_id = :saleId")
+    @Query("DELETE FROM SaleProduct WHERE saleId = :saleId")
     void removeSaleProductSaleId(Integer saleId);
     @Query("DELETE FROM SaleItem WHERE saleId = :saleId")
     void removeSaleItemWithSaleId(Integer saleId);

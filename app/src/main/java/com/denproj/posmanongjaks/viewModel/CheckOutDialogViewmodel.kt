@@ -1,30 +1,41 @@
-package com.denproj.posmanongjaks.viewModel;
+package com.denproj.posmanongjaks.viewModel
 
-import androidx.lifecycle.ViewModel;
-
-import com.denproj.posmanongjaks.hilt.qualifier.FirebaseImpl;
-import com.denproj.posmanongjaks.model.Item;
-import com.denproj.posmanongjaks.model.ProductWrapper;
-import com.denproj.posmanongjaks.repository.base.SaleRepository;
-import com.denproj.posmanongjaks.repository.firebaseImpl.FirebaseSaleRepository;
-
-import java.util.HashMap;
-
-import javax.inject.Inject;
-
-import dagger.hilt.android.lifecycle.HiltViewModel;
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.denproj.posmanongjaks.hilt.qualifier.FirestoreImpl
+import com.denproj.posmanongjaks.model.Item
+import com.denproj.posmanongjaks.model.ProductWrapper
+import com.denproj.posmanongjaks.repository.firebaseImpl.FirebaseSaleRepository.OnSaleStatus
+import com.denproj.posmanongjaks.repository.firestoreImpl.FirestoreSaleRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
-public class CheckOutDialogViewmodel extends ViewModel {
-    SaleRepository salesRepository;
-
-    @Inject
-    public CheckOutDialogViewmodel(@FirebaseImpl SaleRepository salesRepository) {
-        this.salesRepository = salesRepository;
+class CheckOutDialogViewmodel @Inject constructor(@FirestoreImpl var salesRepository: FirestoreSaleRepository) : ViewModel() {
+    fun sell(
+        branchId: String,
+        selectedItemsToSell: HashMap<Long, ProductWrapper>,
+        addOns: HashMap<Item, Int>,
+        year: Int,
+        month: Int,
+        day: Int,
+        total: Double,
+        payAmount: Double,
+        onSaleStatus: OnSaleStatus
+    ) {
+        viewModelScope.launch {
+            salesRepository.processSale(
+                branchId,
+                selectedItemsToSell,
+                addOns,
+                year,
+                month,
+                day,
+                total,
+                payAmount,
+                onSaleStatus
+            )
+        }
     }
-
-    public void sell(String branchId, HashMap<Long, ProductWrapper> selectedItemsToSell, HashMap<Item, Integer> addOns, int year, int month, int day, Double total, Double payAmount, FirebaseSaleRepository.OnSaleStatus onSaleStatus) {
-        salesRepository.processSale(branchId, selectedItemsToSell, addOns, year, month, day, total, payAmount, onSaleStatus);
-    }
-
 }

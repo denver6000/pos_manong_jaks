@@ -1,89 +1,45 @@
-package com.denproj.posmanongjaks.model;
+package com.denproj.posmanongjaks.model
 
-import androidx.annotation.NonNull;
-import androidx.room.Entity;
-import androidx.room.Ignore;
-import androidx.room.PrimaryKey;
+import android.net.Uri
+import androidx.room.Entity
+import androidx.room.Ignore
+import androidx.room.PrimaryKey
+import com.google.firebase.firestore.Exclude
+import com.google.firebase.firestore.IgnoreExtraProperties
+class Product {
 
-import com.google.firebase.firestore.IgnoreExtraProperties;
+    var product_id: Long? = null
+    var product_name: String? = null
+    var product_image_path: String? = null
+    var product_price: Float = 0f
+    var product_category: String? = null
 
-import java.util.HashMap;
+    @Exclude
+    var uri: Uri? = null
 
-@Entity
-@IgnoreExtraProperties
-public class Product {
-
-    @PrimaryKey
-    private Long product_id;
-    private String product_name;
-    private String product_image_path;
-    private float product_price;
-    private String product_category;
-
+    @JvmField
     @Ignore
-    private HashMap<String, Recipe> recipes;
-    public HashMap<String, Recipe> getRecipes() {
-        return recipes;
-    }
-    public void setRecipes(HashMap<String, Recipe> recipes) {
-        this.recipes = recipes;
-    }
-    public Product() {
+    var recipes: HashMap<String, Recipe>? = null
 
-    }
+    constructor()
 
-    public Product(@NonNull Long product_id, String product_name, String product_image_path, float product_price, String product_category, HashMap<String, Recipe> recipes) {
-        this.product_id = product_id;
-        this.product_name = product_name;
-        this.product_image_path = product_image_path;
-        this.product_price = product_price;
-        this.product_category = product_category;
-        this.recipes = recipes;
-    }
-
-    public Long getProduct_id() {
-        return product_id;
+    constructor(
+        product_id: Long,
+        product_name: String?,
+        product_image_path: String?,
+        product_price: Float,
+        product_category: String?,
+        recipes: HashMap<String, Recipe>?
+    ) {
+        this.product_id = product_id
+        this.product_name = product_name
+        this.product_image_path = product_image_path
+        this.product_price = product_price
+        this.product_category = product_category
+        this.recipes = recipes
     }
 
-    public void setProduct_id(Long product_id) {
-        this.product_id = product_id;
-    }
-
-    public String getProduct_name() {
-        return product_name;
-    }
-
-    public void setProduct_name(String product_name) {
-        this.product_name = product_name;
-    }
-
-    public String getProduct_image_path() {
-        return product_image_path;
-    }
-
-    public void setProduct_image_path(String product_image_path) {
-        this.product_image_path = product_image_path;
-    }
-
-    public float getProduct_price() {
-        return product_price;
-    }
-
-    public void setProduct_price(float product_price) {
-        this.product_price = product_price;
-    }
-
-    public String getProduct_category() {
-        return product_category;
-    }
-
-    public void setProduct_category(String product_category) {
-        this.product_category = product_category;
-    }
-
-    @NonNull
-    @Override
-    public String toString() {
-        return String.valueOf(product_id);
+    override fun toString(): String {
+        return product_id.toString()
     }
 }

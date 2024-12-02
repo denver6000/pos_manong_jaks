@@ -1,47 +1,45 @@
-package com.denproj.posmanongjaks.repository.firebaseImpl;
+package com.denproj.posmanongjaks.repository.firebaseImpl
 
-import androidx.annotation.NonNull;
-import androidx.lifecycle.MutableLiveData;
+import com.denproj.posmanongjaks.model.Item
+import com.denproj.posmanongjaks.repository.base.AddOnsRepository
+import com.denproj.posmanongjaks.util.OnDataReceived
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 
-import com.denproj.posmanongjaks.model.Item;
-import com.denproj.posmanongjaks.repository.base.AddOnsRepository;
-import com.denproj.posmanongjaks.util.OnFetchFailed;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
-
-import java.util.ArrayList;
-import java.util.List;
-
-public class FirebaseAddonRepository implements AddOnsRepository {
-    FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
-    public static final String PATH_TO_ITEMS_ON_BRANCHES = "items_on_branches";
-
-    @Override
-    public MutableLiveData<List<Item>> observeAddOnsList(String branchId, OnFetchFailed onFetchFailed) {
-        MutableLiveData<List<Item>> mutableLiveData = new MutableLiveData<>();
-        DatabaseReference databaseReference = firebaseDatabase.getReference( PATH_TO_ITEMS_ON_BRANCHES + "/" + branchId);
-        databaseReference.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot items) {
-                List<Item> addOns = new ArrayList<>();
-                for (DataSnapshot itemSnapshot : items.getChildren()) {
-                    Boolean isAddOn = itemSnapshot.child("ads_on").getValue(Boolean.class);
+class FirebaseAddonRepository : AddOnsRepository {
+    var firebaseDatabase: FirebaseDatabase = FirebaseDatabase.getInstance()
+    override suspend fun observeAddOnsList(
+        branchId: String,
+        onDataReceived: OnDataReceived<List<Item?>?>?
+    ) {
+        val databaseReference =
+            firebaseDatabase.getReference(PATH_TO_ITEMS_ON_BRANCHES + "/" + branchId)
+        databaseReference.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(items: DataSnapshot) {
+                val addOns: MutableList<Item?> = ArrayList()
+                for (itemSnapshot in items.children) {
+                    val isAddOn = itemSnapshot.child("ads_on").getValue(
+                        Boolean::class.java
+                    )
                     if (isAddOn != null && isAddOn) {
-                        Item item = itemSnapshot.getValue(Item.class);
-                        addOns.add(item);
+                        val item = itemSnapshot.getValue(
+                            Item::class.java
+                        )
+                        addOns.add(item)
                     }
                 }
-                mutableLiveData.setValue(addOns);
+                onDataReceived?.onSuccess(addOns)
             }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                onFetchFailed.onFetchFailed(error.toException());
+            override fun onCancelled(error: DatabaseError) {
+                onDataReceived?.onFail(error.toException())
             }
-        });
-        return mutableLiveData;
+        })
+    }
+
+    companion object {
+        const val PATH_TO_ITEMS_ON_BRANCHES: String = "items_on_branches"
     }
 }

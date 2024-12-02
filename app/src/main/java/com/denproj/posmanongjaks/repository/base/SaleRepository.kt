@@ -1,22 +1,30 @@
-package com.denproj.posmanongjaks.repository.base;
+package com.denproj.posmanongjaks.repository.base
 
-import androidx.lifecycle.LiveData;
+import androidx.lifecycle.LiveData
+import com.denproj.posmanongjaks.model.Item
+import com.denproj.posmanongjaks.model.ProductWrapper
+import com.denproj.posmanongjaks.model.Sale
+import com.denproj.posmanongjaks.model.SaleItem
+import com.denproj.posmanongjaks.model.SaleProduct
+import com.denproj.posmanongjaks.repository.firebaseImpl.FirebaseSaleRepository.OnSaleStatus
+import com.denproj.posmanongjaks.util.OnDataReceived
 
-import com.denproj.posmanongjaks.model.Item;
-import com.denproj.posmanongjaks.model.ProductWrapper;
-import com.denproj.posmanongjaks.model.Sale;
-import com.denproj.posmanongjaks.model.SaleItem;
-import com.denproj.posmanongjaks.model.SaleProduct;
-import com.denproj.posmanongjaks.repository.firebaseImpl.FirebaseSaleRepository;
-import com.denproj.posmanongjaks.util.OnFetchFailed;
+interface SaleRepository {
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
+    fun processSale(
+        branchId: String,
+        selectedItemToSel: HashMap<Long, ProductWrapper>,
+        addOns: HashMap<Item, Int>,
+        year: Int,
+        month: Int,
+        day: Int,
+        total: Double,
+        amountToBePaid: Double,
+        onSaleStatus: OnSaleStatus
+    )
 
-public interface SaleRepository {
-    void processSale(String branchId, HashMap<Long, ProductWrapper> selectedItemToSel, HashMap<Item, Integer> addOns, int year, int month, int day, Double total, Double amountToBePaid, FirebaseSaleRepository.OnSaleStatus onSaleStatus);
-    LiveData<List<SaleItem>> getAllAddOnsWithSaleId(Integer saleId);
-    LiveData<List<SaleProduct>> getAllProductsWithSaleId(Integer saleId);
-    LiveData<List<Sale>> getAllRecordedSalesOnBranch(String branchId, OnFetchFailed onFetchFailed);
+    fun getAllAddOnsWithSaleId(saleId: Int): LiveData<List<SaleItem>>
+    fun getAllProductsWithSaleId(saleId: Int): LiveData<List<SaleProduct>>
+    fun getAllRecordedSalesOnBranch(branchId: String, onDataFetched: OnDataReceived<List<Sale>>)
+    suspend fun getAllSales(branchId: String): List<Sale>
 }

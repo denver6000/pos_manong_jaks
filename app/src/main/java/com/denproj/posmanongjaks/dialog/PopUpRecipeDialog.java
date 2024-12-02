@@ -2,28 +2,19 @@ package com.denproj.posmanongjaks.dialog;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.DialogInterface;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
-import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-
-import com.denproj.posmanongjaks.R;
 import com.denproj.posmanongjaks.adapter.RecipeRecyclerViewAdapter;
 import com.denproj.posmanongjaks.databinding.FragmentPopUpRecipeDialogBinding;
 import com.denproj.posmanongjaks.model.Item;
 import com.denproj.posmanongjaks.model.Recipe;
 import com.denproj.posmanongjaks.repository.firebaseImpl.FirebaseItemRepository;
 import com.denproj.posmanongjaks.util.OnDataReceived;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;

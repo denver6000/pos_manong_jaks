@@ -18,5 +18,21 @@
         android:id="@+id/homeActivity"
         android:name="com.denproj.posmanongjaks.HomeActivity"
         android:label="activity_home"
-        tools:layout="@layout/activity_home" />
+        tools:layout="@layout/activity_home" >
+        <argument
+            android:name="userId"
+            app:argType="string" />
+        <argument
+            android:name="username"
+            app:argType="string" />
+        <argument
+            android:name="branchName"
+            app:argType="string" />
+        <argument
+            android:name="branchId"
+            app:argType="string" />
+        <argument
+            android:name="roleName"
+            app:argType="string" />
+    </activity>
 </navigation>

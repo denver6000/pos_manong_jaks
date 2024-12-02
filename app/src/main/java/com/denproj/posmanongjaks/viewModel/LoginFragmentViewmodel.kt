@@ -1,50 +1,70 @@
-package com.denproj.posmanongjaks.viewModel;
+package com.denproj.posmanongjaks.viewModel
 
-import androidx.databinding.ObservableField;
-import androidx.lifecycle.ViewModel;
-
-import com.denproj.posmanongjaks.util.OnLoginSuccessful;
-import com.google.firebase.auth.FirebaseAuth;
-
-import javax.inject.Inject;
-
-import dagger.hilt.android.lifecycle.HiltViewModel;
+import androidx.databinding.ObservableField
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.denproj.posmanongjaks.hilt.qualifier.FirebaseImpl
+import com.denproj.posmanongjaks.repository.base.BranchRepository
+import com.denproj.posmanongjaks.repository.base.UserRepository
+import com.denproj.posmanongjaks.repository.impl.SessionRepository
+import com.denproj.posmanongjaks.session.SessionSimple
+import com.denproj.posmanongjaks.util.OnLoginSuccessful
+import com.google.firebase.auth.AuthResult
+import com.google.firebase.auth.FirebaseAuth
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
-public class LoginFragmentViewmodel extends ViewModel {
+class LoginFragmentViewmodel @Inject constructor(val sessionRepository: SessionRepository, @FirebaseImpl val userRepository: UserRepository, @FirebaseImpl val branchRepository: BranchRepository) : ViewModel() {
+    @JvmField
+    var observableEmail: ObservableField<String> = ObservableField("")
+    @JvmField
+    var observablePassword: ObservableField<String> = ObservableField("")
 
-    public ObservableField<String> observableEmail = new ObservableField<>("");
-    public ObservableField<String> observablePassword = new ObservableField<>("");
-
-    @Inject
-    public LoginFragmentViewmodel() {
-
-    }
-
-    public void firebaseLogin(IsFirebaseAuthCachePresent isFirebaseAuthCachePresent) {
-        FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
-        if (firebaseAuth.getCurrentUser() == null) {
-            isFirebaseAuthCachePresent.cacheAbsent();
-        } else {
-            isFirebaseAuthCachePresent.cachePresent();
+    fun firebaseLogin(isFirebaseAuthCachePresent: IsFirebaseAuthCachePresent) {
+        val firebaseAuth = FirebaseAuth.getInstance()
+        viewModelScope.launch {
+            val simpleSession = sessionRepository.getSession()
+            if (firebaseAuth.currentUser == null) {
+                isFirebaseAuthCachePresent.cacheAbsent()
+                sessionRepository.clearSession()
+            } else if (simpleSession != null) {
+                isFirebaseAuthCachePresent.cachePresent(simpleSession)
+            }
         }
     }
 
-    public void emailPasswordLogin(OnLoginSuccessful onLoginSuccessful) {
-        FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
-        String email = observableEmail.get();
-        String password = observablePassword.get();
+    fun emailPasswordLogin(onLoginSuccessful: OnLoginSuccessful) {
+        val firebaseAuth = FirebaseAuth.getInstance()
+        val email = observableEmail.get()
+        val password = observablePassword.get()
         if (email == null || password == null || email.isEmpty() || password.isEmpty()) {
-            onLoginSuccessful.onLoginFailed(new Exception("Empty Fields"));
+            onLoginSuccessful.onLoginFailed(Exception("Empty Fields"))
         } else {
-            firebaseAuth.signInWithEmailAndPassword(email, password).addOnSuccessListener(authResult -> {
-                onLoginSuccessful.onLoginSuccess();
-            }).addOnFailureListener(onLoginSuccessful::onLoginFailed);
+            firebaseAuth.signInWithEmailAndPassword(email, password)
+                .addOnSuccessListener { authResult: AuthResult ->
+                    if (authResult.user != null) {
+                        viewModelScope.launch {
+                            try {
+                                val user = userRepository.getUserFlow(authResult.user!!)
+                                val sessionSimple = SessionSimple(userId = user.user_id, name = user.username, branchId = user.branches?.get(0), branchName = user.branch_location, roleName =  user.role)
+                                sessionRepository.saveSession(sessionSimple)
+                                onLoginSuccessful.onLoginSuccess(sessionSimple)
+                            } catch (e: Exception) {
+                                onLoginSuccessful.onLoginFailed(e)
+                            }
+                        }
+                    }
+                }.addOnFailureListener {
+                    e: Exception? -> onLoginSuccessful.onLoginFailed(e)
+                }
         }
     }
 
-    public interface IsFirebaseAuthCachePresent {
-        void cachePresent();
-        void cacheAbsent();
+    interface IsFirebaseAuthCachePresent {
+        fun cachePresent(sessionSimple: SessionSimple)
+        fun cacheAbsent()
     }
 }

@@ -1,21 +1,8 @@
-package com.denproj.posmanongjaks.viewModel;
+package com.denproj.posmanongjaks.viewModel
 
-import androidx.lifecycle.ViewModel;
-
-import javax.inject.Inject;
-
-import dagger.hilt.android.lifecycle.HiltViewModel;
+import androidx.lifecycle.ViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
 @HiltViewModel
-public class MainViewModel extends ViewModel {
-
-
-    @Inject
-    public MainViewModel() {
-
-
-    }
-
-
-
-}
+class MainViewModel @Inject constructor() : ViewModel()
