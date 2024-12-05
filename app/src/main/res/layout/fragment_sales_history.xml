@@ -8,7 +8,6 @@
     tools:context=".fragments.sales.SalesHistoryFragment">
 
     <androidx.compose.ui.platform.ComposeView
-
         android:id="@+id/salesComposeView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -18,4 +17,6 @@
         app:layout_constraintTop_toBottomOf="@+id/cartesian_chart_view">
 
     </androidx.compose.ui.platform.ComposeView>
+
+
 </LinearLayout>

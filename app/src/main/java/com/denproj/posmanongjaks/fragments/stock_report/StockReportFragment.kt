@@ -1,13 +1,12 @@
 package com.denproj.posmanongjaks.fragments.stock_report
 
 import android.app.TimePickerDialog
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,16 +16,20 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,16 +38,19 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.denproj.posmanongjaks.databinding.FragmentStockReportBinding
 import com.denproj.posmanongjaks.model.ItemStockRecord
+import com.denproj.posmanongjaks.util.TimeUtil
 import com.denproj.posmanongjaks.viewModel.StockReportViewModel
+import com.google.firebase.storage.FirebaseStorage
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.Locale
 
@@ -53,34 +59,65 @@ class StockReportFragment : Fragment() {
 
 
     private lateinit var binding: FragmentStockReportBinding;
+    private val viewModel: StockReportViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+
         binding = FragmentStockReportBinding.inflate(layoutInflater)
+
         binding.stocksList.setContent {
-           StockReportFragmentScreen()
+           StockReportFragmentScreen(viewModel)
         }
+
         return binding.root
     }
 }
 
 @Composable
-fun StockReportFragmentScreen(stockReportViewModel: StockReportViewModel = viewModel()) {
-    val stockReportList = stockReportViewModel.state.value
-    Column(modifier = Modifier.fillMaxSize()) {
-        Row (modifier = Modifier.fillMaxWidth().wrapContentHeight()){
-
+fun IndefiniteLoadingAnimation() {
+    Column (modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center) {
+        Row (modifier = Modifier.wrapContentSize(), horizontalArrangement = Arrangement.Center) {
+            CircularProgressIndicator()
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(text = "Loading...")
         }
-        StockReportLazyColumn(stockReportList)
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun StockReportFragmentScreen(stockReportViewModel: StockReportViewModel = viewModel()) {
+    val isLoading by remember { stockReportViewModel.isLoading }
+    val isRefresh = remember { stockReportViewModel.isRefreshing  }
+
+    val stockReportList = stockReportViewModel.state.value
+    if (isLoading) {
+        IndefiniteLoadingAnimation()
+    } else {
+        Column(modifier = Modifier.fillMaxSize()) {
+            Text(modifier = Modifier.padding(20.dp), text = TimeUtil.getCurrentDateTitleFormat(), fontSize = 20.sp, fontFamily = FontFamily.SansSerif)
+            PullToRefreshBox(
+                modifier = Modifier.fillMaxSize(),
+                isRefreshing = isRefresh.value,
+                onRefresh = {
+                    isRefresh.value = true
+                    stockReportViewModel.getStockReport {
+                        isRefresh.value = false
+                    }
+                }
+            ) {
+                StockReportLazyColumn(stockReportList)
+            }
+        }
     }
 }
 
 @Composable
 fun StockReportLazyColumn (stockReportList: List<ItemStockRecord>) {
-    LazyColumn (modifier = Modifier.background(Color.White)) {
-
+    LazyColumn (modifier = Modifier.background(Color.Transparent)) {
         items (stockReportList.size) { index ->
             StockReportCard(stockReportList[index])
         }
@@ -102,14 +139,9 @@ fun StockReportCard (itemStockRecord: ItemStockRecord) {
                 .fillMaxWidth()
                 .padding(8.dp)
         ) {
-            AsyncImage(
-                model = itemStockRecord.imageUri.toString(),
-                contentDescription = "Product Image",
-                modifier = Modifier
-                    .size(64.dp)
-                    .clip(RoundedCornerShape(8.dp)),
-                contentScale = ContentScale.Crop,
-            )
+
+
+            StockImage(itemStockRecord.item_name!!, itemStockRecord.item_image_path!!)
 
             Spacer(modifier = Modifier.width(16.dp))
 
@@ -119,7 +151,7 @@ fun StockReportCard (itemStockRecord: ItemStockRecord) {
 
             ) {
                 Text(
-                    text = "${itemStockRecord.item_id}",
+                    text = "${itemStockRecord.item_name}",
                     style = MaterialTheme.typography.bodyLarge.copy(fontSize = 18.sp),
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -135,6 +167,29 @@ fun StockReportCard (itemStockRecord: ItemStockRecord) {
             }
         }
     }
+}
+
+@Composable
+fun StockImage (itemName: String?, itemImagePath: String?) {
+
+    val uri: MutableState<Uri?> = remember { mutableStateOf(null) }
+    LaunchedEffect (itemImagePath) {
+        if (itemImagePath != null) {
+            val storage = FirebaseStorage.getInstance()
+            storage.getReference(itemImagePath).downloadUrl.addOnSuccessListener {
+                uri.value = it
+            }
+        }
+    }
+
+    AsyncImage(
+        model = uri.value,
+        contentDescription = "Product Image Of $itemName",
+        modifier = Modifier
+            .size(64.dp)
+            .clip(RoundedCornerShape(8.dp)),
+        contentScale = ContentScale.Crop,
+    )
 }
 
 @Composable

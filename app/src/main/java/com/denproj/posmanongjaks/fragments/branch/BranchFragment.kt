@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -24,8 +25,16 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -50,14 +59,17 @@ import kotlinx.coroutines.tasks.await
 @AndroidEntryPoint
 class BranchFragment : Fragment() {
     lateinit var binding: FragmentBranchBinding;
+    val viewmodel: BranchFragmentViewmodel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+
         binding = FragmentBranchBinding.inflate(inflater)
+
         binding.stocksList.setContent {
-            BranchFragmentScreen()
+            BranchFragmentScreen(viewmodel)
         }
 
         return binding.root
@@ -65,9 +77,34 @@ class BranchFragment : Fragment() {
 }
 
 @Composable
-fun BranchFragmentScreen(viewmodel: BranchFragmentViewmodel = viewModel()) {
+fun LoadingDialog() {
+    Column (modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+        CircularProgressIndicator()
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun BranchFragmentScreen(viewmodel: BranchFragmentViewmodel) {
     val stocksList = viewmodel.stocks.value
-    StocksLazyColumn(stocksList)
+    val isRefreshing = remember { viewmodel.isRefreshing }
+    val isLoading = viewmodel.isLoading.value
+    if (isLoading) {
+        LoadingDialog()
+    } else {
+        PullToRefreshBox(
+            modifier = Modifier.fillMaxSize().background(Color.White),
+            isRefreshing = isRefreshing.value,
+            onRefresh = {
+                isRefreshing.value = true
+                viewmodel.getStocks {
+                    isRefreshing.value = false
+                }
+            }
+        ) {
+            StocksLazyColumn(stocksList)
+        }
+    }
 }
 
 @Composable
@@ -79,7 +116,6 @@ fun StocksLazyColumn(stocksList: List<Item>) {
         items(stocksList.size) {
             StockCard(stocksList[it])
         }
-
     }
 }
 
@@ -98,7 +134,7 @@ fun StockCard(item: Item) {
             Spacer(modifier = Modifier.height(10.dp))
 
             Box(modifier = Modifier.fillMaxWidth().wrapContentHeight(), contentAlignment = Alignment.Center) {
-                StockImage(item.item_name!!, item.image_url!!)
+                StockImage(item.item_name!!, item!!.item_image_path!!)
             }
 
             Spacer(modifier = Modifier.height(10.dp))
@@ -112,8 +148,15 @@ fun StockCard(item: Item) {
 }
 
 @Composable
-fun StockImage(imageName: String, imageUri: Uri) {
-    AsyncImage(model = imageUri, contentDescription = "Image of item $imageName",
+fun StockImage(imageName: String, imagePath: String) {
+    val uri: MutableState<Uri?> = remember{ mutableStateOf(null) }
+    LaunchedEffect (Unit) {
+        val storage: FirebaseStorage = FirebaseStorage.getInstance()
+        storage.getReference(imagePath).downloadUrl.addOnSuccessListener {
+            uri.value = it
+        }
+    }
+    AsyncImage(model = uri.value, contentDescription = "Image of item $imageName",
         modifier = Modifier
             .size(100.dp)
             .clip(RoundedCornerShape(8.dp)),

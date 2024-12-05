@@ -1,14 +1,29 @@
 package com.denproj.posmanongjaks.viewModel
 
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.denproj.posmanongjaks.repository.impl.SessionRepository
+import com.denproj.posmanongjaks.util.NetworkStatusMonitor
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class SettingsFragmentViewmodel @Inject constructor() : ViewModel() {
+class SettingsFragmentViewmodel @Inject constructor(val sessionRepository: SessionRepository) : ViewModel() {
     var firebaseAuth: FirebaseAuth = FirebaseAuth.getInstance()
+    val mutableLiveData = MutableLiveData<Boolean>()
+    val networkStatusMonitor = NetworkStatusMonitor()
+
+    init {
+        viewModelScope.launch {
+            networkStatusMonitor.isConnected.collect {
+                mutableLiveData.value = it
+            }
+        }
+    }
 
     fun resetPassword(
         isConnectionReachable: Boolean,
@@ -36,9 +51,16 @@ class SettingsFragmentViewmodel @Inject constructor() : ViewModel() {
 
     fun logout(onLogOutSuccessful: OnLogOutSuccessful) {
         if (isUserSignedIn) {
-            firebaseAuth.signOut()
-            onLogOutSuccessful.onSuccess()
+            viewModelScope.launch {
+                firebaseAuth.signOut()
+                sessionRepository.clearSession()
+                onLogOutSuccessful.onSuccess()
+            }
         } else {
+            viewModelScope.launch {
+                sessionRepository.clearSession()
+                onLogOutSuccessful.onSuccess()
+            }
             onLogOutSuccessful.onFail(Exception("User already signed out."))
         }
     }

@@ -24,6 +24,13 @@ class TimeUtil {
             val startOfDay = LocalDateTime.now().atZone(ZoneId.systemDefault())
             return dateFormatter.format(startOfDay)
         }
+
+        fun getCurrentDateTitleFormat(): String {
+            val formatter = DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy")
+            val date = LocalDateTime.now().atZone(ZoneId.systemDefault())
+            // Format the date
+            return date.format(formatter)
+        }
     }
 }
 

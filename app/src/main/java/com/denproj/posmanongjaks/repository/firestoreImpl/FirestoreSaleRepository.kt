@@ -1,6 +1,5 @@
 package com.denproj.posmanongjaks.repository.firestoreImpl
 
-import co.yml.charts.common.extensions.isNotNull
 import com.denproj.posmanongjaks.model.CompleteSaleInfo
 import com.denproj.posmanongjaks.model.Item
 import com.denproj.posmanongjaks.model.ItemNameAndAmountToReduce
@@ -12,7 +11,6 @@ import com.denproj.posmanongjaks.model.SaleProduct
 import com.denproj.posmanongjaks.repository.firebaseImpl.FirebaseSaleRepository.OnSaleStatus
 import com.denproj.posmanongjaks.util.OnDataReceived
 import com.denproj.posmanongjaks.util.TimeUtil
-import com.denproj.posmanongjaks.util.TimeUtil.Companion.getCurrentDate
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
@@ -74,7 +72,7 @@ class FirestoreSaleRepository {
                     val recipeItemKey = s.toInt()
                     itemsAndReductionAmount.compute(recipeItemKey) { k: Int?, v: ItemNameAndAmountToReduce? ->
                         if ((v == null))
-                            return@compute (ItemNameAndAmountToReduce(recipeItemKey.toString(), recipe.amount!! * productAmt.toDouble()))
+                            return@compute (ItemNameAndAmountToReduce(recipe.ItemName!!, recipe.amount!! * productAmt.toDouble()))
                         else {
                             v.amountToReduce += recipe.amount!! * productAmt
                             v
@@ -107,9 +105,14 @@ class FirestoreSaleRepository {
         }
 
 
-        itemsAndReductionAmount.forEach {
+        itemsAndReductionAmount.forEach { it ->
             val item = firestore.collection("branch_items").document(branchId).collection("items").whereEqualTo("item_id", it.key).get().await()
-            reduceStock(branchId, item.documents[0], it.value.amountToReduce)
+            val itemObj = item.documents[0].toObject(Item::class.java)
+            reduceStock(
+                branchId = branchId,
+                it.value.itemName,
+                item.documents[0],
+                it.value.amountToReduce)
         }
 
         val saleRecord = Sale()
@@ -124,17 +127,19 @@ class FirestoreSaleRepository {
         saleRecord.hour = timeBreakdown[0].toInt()
         saleRecord.minute = timeBreakdown[1].toInt()
         addSaleRecord(saleRecord, selectedAddOns, selectedProducts, onSaleStatus)
-
-
     }
 
     suspend fun addSaleRecord(sale: Sale, selectedAddOns: HashMap<Item, Int>, selectedProducts: HashMap<Long, ProductWrapper>, onSaleStatus: OnSaleStatus) {
-        val saleRecordCollection = firestore.collection("sales_record")
-        saleRecordCollection.add(sale).await()
+
         val soldItems = firestore.collection("sales_item")
         val soldProducts = firestore.collection("sales_product")
         val productsMap = ArrayList<SaleProduct>()
         val itemsMap = ArrayList<SaleItem>()
+
+
+
+        val saleRecordCollection = firestore.collection("sales_record")
+        saleRecordCollection.add(sale)
 
         selectedAddOns.forEach {
             val saleItem = SaleItem()
@@ -154,18 +159,21 @@ class FirestoreSaleRepository {
             saleProduct.name = it.value.product.product_name
             soldProducts.add(saleProduct)
             productsMap.add(saleProduct)
-            insertToSaleStatistic(sale.branchId!!, saleProduct)
         }
 
         onSaleStatus.success(CompleteSaleInfo(sale, itemsMap, productsMap))
 
+
+        productsMap.forEach { saleProduct ->
+            insertToSaleStatistic(sale.branchId!!, saleProduct)
+        }
     }
 
-    suspend fun reduceStock(branchId: String, itemSnapshot: DocumentSnapshot, amountToReduce: Double) {
+    suspend fun reduceStock(branchId: String, itemName: String, itemSnapshot: DocumentSnapshot, amountToReduce: Double) {
         val currentStock = itemSnapshot.getDouble("item_quantity")
         val newStock = currentStock!! - amountToReduce
         itemSnapshot.reference.update("item_quantity", newStock)
-        recordStockMovement(itemSnapshot, amountToReduce, branchId)
+        recordStockMovement(itemSnapshot, itemName, amountToReduce, branchId)
     }
 
      fun getCurrentStock(itemSnapshot: DocumentSnapshot, itemId: Int): Double {
@@ -212,7 +220,7 @@ class FirestoreSaleRepository {
             }
     }
 
-    suspend fun recordStockMovement(item: DocumentSnapshot, amount: Double, branchId: String) {
+    suspend fun recordStockMovement(item: DocumentSnapshot, itemName: String, amount: Double, branchId: String) {
         val stockRecordsCollection = firestore.collection("stock_record")
         var itemRecordOfBranchToday = stockRecordsCollection.whereEqualTo("sale_date", getCurrentDate()).whereEqualTo("branch_id", branchId).get().await()
 
@@ -220,8 +228,8 @@ class FirestoreSaleRepository {
             val newStockRecord = HashMap<String, Any>()
             newStockRecord["sale_time"] = getCurrentTime()
             val sale_time = getCurrentTime().split(":")
-            newStockRecord["sale_hour"] = sale_time[0]
-            newStockRecord["sale_minute"] = sale_time[1]
+            newStockRecord["sale_hour"] = sale_time[0].toInt()
+            newStockRecord["sale_minute"] = sale_time[1].toInt()
             newStockRecord["sale_date"] = getCurrentDate()
             newStockRecord["branch_id"] = branchId
             stockRecordsCollection.add(newStockRecord).await()
@@ -233,9 +241,11 @@ class FirestoreSaleRepository {
         if (recordOfItem.isEmpty) {
             val soldItems = itemRecordOfBranchToday.documents[0].reference.collection("sold_items")
             val newItemRecord = HashMap<String, Any>()
+            newItemRecord["item_name"] = itemName
             newItemRecord["item_id"] = item.id.toInt()
             newItemRecord["total_reduced_stock_amount"] = amount
             newItemRecord["stock_at_start"] = getCurrentStock(item, item.id.toInt())
+            newItemRecord["item_image_path"] = item.get("item_image_path").toString()
             soldItems.add(newItemRecord).await()
         } else {
             val itemTotalReducedStockAmount = recordOfItem.documents[0].get("total_reduced_stock_amount").toString().toDouble()
@@ -250,16 +260,16 @@ class FirestoreSaleRepository {
             .whereEqualTo("sale_date", getCurrentDate()).get().await()
 
         if (saleStatistic.isEmpty) {
-            val hash = HashMap<String, Any>()
-            hash["branch_id"] = branchId
-            hash["sale_date"] = getCurrentDate()
-            val productSoldCollections = saleStatsCollection.document().collection("products_sold")
+            val statisticEntry = HashMap<String, Any>()
+            statisticEntry["branch_id"] = branchId
+            statisticEntry["sale_date"] = getCurrentDate()
             val hashMap = HashMap<String, Any>()
             hashMap["product_id"] = saleProduct.productId!!
             hashMap["amount_sold"] = saleProduct.amount
             hashMap["product_name"] = saleProduct.name!!
+            val result = saleStatsCollection.add(statisticEntry).await()
+            val productSoldCollections = saleStatsCollection.document(result.id).collection("products_sold")
             productSoldCollections.add(hashMap)
-            saleStatsCollection.add(hash)
         } else {
             val statDocId = saleStatistic.documents[0].id
             val saleStatisticRef = saleStatsCollection.document(statDocId)

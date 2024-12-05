@@ -49,15 +49,19 @@ public class LoginFragment extends Fragment implements OnLoginSuccessful {
         this.loadingDialog = new LoadingDialog("Detecting Saved Login", "Loading");
 
 
-        binding.loginActionButton.setOnClickListener(view -> setupLoginButton(LoginFragment.this));
+        binding.loginActionButton.setOnClickListener(view -> {
+            showLoading();
+            setupLoginButton(LoginFragment.this);
+        });
         return binding.getRoot();
     }
 
     public void setupLogin() {
-        loadingDialog.show(getChildFragmentManager(), "");
+        showLoading();
         LoginFragment.this.loginFragmentViewmodel.firebaseLogin(new LoginFragmentViewmodel.IsFirebaseAuthCachePresent() {
             @Override
             public void cachePresent(@NonNull SessionSimple sessionSimple) {
+                hideDialog();
                 Toast.makeText(requireContext(), "Previous Login Detected", Toast.LENGTH_SHORT).show();
                 loadingDialog.dismiss();
                 navController.navigate(LoginFragmentDirections.actionLoginFragmentToHomeActivity(sessionSimple.getUserId(), sessionSimple.getName(), sessionSimple.getBranchName(), sessionSimple.getBranchId(), sessionSimple.getRoleName()));
@@ -65,9 +69,17 @@ public class LoginFragment extends Fragment implements OnLoginSuccessful {
 
             @Override
             public void cacheAbsent() {
-                loadingDialog.dismiss();
+                hideDialog();
             }
         });
+    }
+
+    public void showLoading() {
+        loadingDialog.show(getChildFragmentManager(), "");
+    }
+
+    public void hideDialog() {
+        loadingDialog.dismiss();
     }
 
     public void setupLoginButton(OnLoginSuccessful onLoginSuccessful) {
@@ -76,11 +88,13 @@ public class LoginFragment extends Fragment implements OnLoginSuccessful {
 
     @Override
     public void onLoginSuccess(SessionSimple sessionSimple) {
+        hideDialog();
         navController.navigate(LoginFragmentDirections.actionLoginFragmentToHomeActivity(sessionSimple.getUserId(), sessionSimple.getName(), sessionSimple.getBranchName(), sessionSimple.getBranchId(), sessionSimple.getRoleName()));
     }
 
     @Override
     public void onLoginFailed(Exception e) {
+        hideDialog();
         Toast.makeText(requireContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
     }
 

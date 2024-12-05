@@ -12,49 +12,53 @@ class FirestoreStockReportRepository : StockReportRepository {
 
     val firestore = FirebaseFirestore.getInstance()
 
-    override suspend fun getReportsOfBranch(branchId: String, onDataReceived: OnDataReceived<List<ItemStockRecord>>) {
-        val branchStockReport =
-            firestore
-                .collection("stock_record")
-                .whereEqualTo("branch_id", branchId)
-                .whereEqualTo("sale_date", TimeUtil.getCurrentDate())
-                .get().await()
+    override suspend fun getReportsOfBranch(
+        branchId: String,
+        onDataReceived: OnDataReceived<List<ItemStockRecord>>
+    ) {
+        firestore
+            .collection("stock_record")
+            .whereEqualTo("branch_id", branchId)
+            .whereEqualTo("sale_date", TimeUtil.getCurrentDate())
+            .addSnapshotListener { branchStockReport, error ->
 
-        if (branchStockReport.isEmpty) {
-            onDataReceived.onSuccess(emptyList())
-            return
-        }
-
-        val stockRecordsCollection = branchStockReport.documents[0].reference.collection("sold_items")
-        val stockRecords = stockRecordsCollection.get().await()
-
-        if (stockRecords.isEmpty) {
-            onDataReceived.onSuccess(emptyList())
-            return
-        }
-
-        val itemStockRecords = ArrayList<ItemStockRecord>()
-        val storage = FirebaseStorage.getInstance()
-        val itemCollection = firestore.collection("items_list")
-        stockRecords.documents.forEach {
-
-            val stockRecordObj = it.toObject(ItemStockRecord::class.java)
-
-
-            if (stockRecordObj != null) {
-                val matchedItems = itemCollection.whereEqualTo("item_id", stockRecordObj.item_id).get().await()
-                if (matchedItems.documents.isNotEmpty()) {
-                    val imagePath = matchedItems.documents[0].getString("item_image_path")
-                    if (imagePath != null) {
-                        val url = storage.getReference(imagePath).downloadUrl.await()
-                        stockRecordObj.imageUri = url
-                    }
-
+                if (branchStockReport == null) {
+                    onDataReceived.onSuccess(emptyList())
+                    return@addSnapshotListener
                 }
-                itemStockRecords.add(stockRecordObj)
-            }
-        }
 
-        onDataReceived.onSuccess(itemStockRecords)
+                if (branchStockReport!!.isEmpty) {
+                    onDataReceived.onSuccess(emptyList())
+                    return@addSnapshotListener
+                }
+
+                val stockRecordsCollection =
+                    branchStockReport.documents[0].reference.collection("sold_items")
+                val stockRecords =
+                    stockRecordsCollection.addSnapshotListener { stockRecords, error ->
+
+                        if (stockRecords == null) {
+                            onDataReceived.onSuccess(emptyList())
+                            return@addSnapshotListener
+                        }
+                        if (stockRecords.isEmpty) {
+                            onDataReceived.onSuccess(emptyList())
+                            return@addSnapshotListener
+                        }
+
+                        val itemStockRecords = ArrayList<ItemStockRecord>()
+                        val storage = FirebaseStorage.getInstance()
+                        val itemCollection = firestore.collection("items_list")
+                        stockRecords.documents.forEach {
+                            val stockRecordObj = it.toObject(ItemStockRecord::class.java)
+
+
+                            if (stockRecordObj != null) {
+                                itemStockRecords.add(stockRecordObj)
+                            }
+                        }
+                        onDataReceived.onSuccess(itemStockRecords)
+                    }
+            }
     }
 }

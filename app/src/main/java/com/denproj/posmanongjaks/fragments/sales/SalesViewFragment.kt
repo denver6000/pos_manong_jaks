@@ -38,7 +38,7 @@ import java.util.function.Consumer
 class SalesViewFragment : Fragment() {
     var productsRecyclerViewAdapter: ProductsRecyclerViewAdapter? = null
 
-    var binding: FragmentSalesViewBinding? = null
+    lateinit var binding: FragmentSalesViewBinding
     var addOnRecyclerViewAdapter: AddOnRecyclerViewAdapter? = null
 
     val homeActivityViewmodel: HomeActivityViewmodel by activityViewModels<HomeActivityViewmodel>()
@@ -51,8 +51,10 @@ class SalesViewFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentSalesViewBinding.inflate(inflater)
+
+
+
         setupAdapters()
-        showDialog()
 
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.RESUMED) {
@@ -77,7 +79,6 @@ class SalesViewFragment : Fragment() {
 
         viewmodel.errors.observe(viewLifecycleOwner) { exception ->
             Toast.makeText(requireContext(), exception?.toString() ?: "Something went wrong.", Toast.LENGTH_SHORT).show()
-
         }
 
         return binding!!.root
@@ -85,6 +86,7 @@ class SalesViewFragment : Fragment() {
 
     fun setupViews(session: SessionSimple) {
         binding!!.checkOutItems.setOnClickListener { view: View? ->
+            showDialog()
             val branch = Branch(session.branchId!!, session.branchName, "Contact", "Manager", "Branch")
             CheckOutDialogFragment(
                 branch,
@@ -92,6 +94,7 @@ class SalesViewFragment : Fragment() {
                 addOnRecyclerViewAdapter!!.itemsMap,
                 object : CheckOutDialogFragment.OnSaleFinished {
                     override fun onSuccess(completeSaleInfo: CompleteSaleInfo) {
+                        hideDialog()
                         val builder = AlertDialog.Builder(requireContext())
 
                         builder.setTitle("Change: " + completeSaleInfo.sale.change).setMessage("Print a receipt")
@@ -124,6 +127,7 @@ class SalesViewFragment : Fragment() {
                         e: Exception,
                         itemNameAndErrors: HashMap<String?, String?>
                     ) {
+                        hideDialog()
                         itemNameAndErrors.forEach { (itemName: String?, errorMsg: String?) ->
                             showErrorDialog(itemName, errorMsg)
                         }
@@ -133,16 +137,21 @@ class SalesViewFragment : Fragment() {
         }
     }
 
+    override fun onResume() {
+        showDialog()
+        super.onResume()
+    }
+
     fun observeProducts() {
         viewmodel.products.observe(viewLifecycleOwner) { products ->
             productsRecyclerViewAdapter!!.refreshAdapter(products ?: emptyList())
-            hideDialog()
         }
     }
 
     fun observeAddons() {
         viewmodel.items.observe(viewLifecycleOwner) {items ->
             addOnRecyclerViewAdapter!!.refreshAdapter(items ?: emptyList())
+            hideDialog()
         }
     }
 
@@ -167,6 +176,10 @@ class SalesViewFragment : Fragment() {
     }
 
     fun showDialog() {
+        if (loadingDialog.isVisible) {
+            hideDialog()
+        }
+        this.loadingDialog = LoadingDialog()
         loadingDialog.show(childFragmentManager, "")
     }
 

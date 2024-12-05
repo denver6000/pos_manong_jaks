@@ -59,6 +59,21 @@ dependencies {
     implementation(libs.core.ktx)
     val room_version = "2.6.1"
 
+    implementation(libs.google.accompanist.swiperefresh)
+
+    implementation(libs.androidx.core.ktx.v1120)
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
+    implementation(libs.androidx.activity.compose.v182)
+    implementation(platform("androidx.compose:compose-bom:2024.11.00"))
+    implementation(libs.androidx.ui)
+    implementation(libs.androidx.ui.graphics)
+    implementation(libs.androidx.ui.tooling.preview)
+    implementation(libs.androidx.compose.material3.material3)
+
+
+    implementation(libs.androidx.foundation)
+    implementation(libs.androidx.material3)
+
     implementation("co.yml:ycharts:2.1.0")
 
     implementation(libs.hilt.android.v2511)

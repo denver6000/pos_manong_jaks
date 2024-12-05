@@ -37,6 +37,10 @@ class SalesFragmentViewmodel @Inject constructor(
 
 
     init {
+        getProductsAndAddOns(null)
+    }
+
+    fun getProductsAndAddOns(onFinished: (() -> Unit)?) {
         viewModelScope.launch {
             var sessionSimple = sessionRepository.getSession()
             if (sessionSimple != null) {
@@ -45,21 +49,27 @@ class SalesFragmentViewmodel @Inject constructor(
                         if (data != null) {
                             _items.postValue(data)
                         }
+                        onFinished?.invoke()
                     }
 
                     override fun onFail(e: Exception?) {
                         _errors.postValue(e ?: Exception("An error occurred when loading add ons."))
+                        onFinished?.invoke()
                     }
                 })
+
                 productRepository.observeProductList(sessionSimple.branchId, object : OnDataReceived<List<Product>?> {
                     override fun onSuccess(data: List<Product>?) {
                         _products.postValue(data ?: emptyList())
+                        onFinished?.invoke()
                     }
 
                     override fun onFail(e: Exception?) {
                         _errors.postValue(e ?: Exception("An error occurred when loading products ons."))
+                        onFinished?.invoke()
                     }
                 })
+
             }
         }
     }

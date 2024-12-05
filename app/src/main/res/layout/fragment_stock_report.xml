@@ -6,8 +6,10 @@
     android:layout_height="match_parent"
     tools:context=".fragments.stock_report.StockReportFragment">
 
+
     <androidx.compose.ui.platform.ComposeView
         android:id="@+id/stocksList"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
+
 </FrameLayout>

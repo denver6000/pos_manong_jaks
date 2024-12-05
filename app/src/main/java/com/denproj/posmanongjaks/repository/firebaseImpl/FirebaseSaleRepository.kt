@@ -142,15 +142,16 @@ class FirebaseSaleRepository : SaleRepository {
         selectedProducts.forEach { (aLong: Long?, productWrapper: ProductWrapper?) ->
             saleProducts.add(
                 SaleProduct(
-                    productWrapper.product.product_id,
-                    productWrapper.addOnAmount,
-                    sale.saleId,
-                    productWrapper.product.product_name
+                    productId = productWrapper.product.product_id,
+                    amount =  productWrapper.addOnAmount,
+                    saleId =  sale.saleId,
+                    name = productWrapper.product.product_name,
+                    imagePath = productWrapper.product.product_image_path
                 )
             )
         }
         selectedAddOns.forEach { (item: Item?, integer: Int?) ->
-            saleItems.add(SaleItem(item.item_id, sale.saleId, integer, item.item_name))
+            saleItems.add(SaleItem(item_id = item.item_id, saleId = sale.saleId, amount = integer, itemName =  item.item_name, imagePath = item.item_image_path))
         }
         onSaleStatus.success(CompleteSaleInfo(sale, saleItems, saleProducts))
         firebaseDatabase.getReference(PATH_TO_SALE_RECORD + "/" + sale.branchId + "/" + sale.saleId)

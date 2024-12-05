@@ -13,18 +13,22 @@ class FirestoreItemRepository : ItemRepository {
         val firestore = FirebaseFirestore.getInstance()
 
         val arrayList = ArrayList<Item>()
-        val firebaseStorage = FirebaseStorage.getInstance()
-        val itemsCollection = firestore.collection("branch_items").document(branchId).collection("items").get().await()
-        itemsCollection.documents.forEach {
-            val item = it.toObject(Item::class.java)
-            if (item != null) {
-                val url = firebaseStorage.getReference(item.item_image_path!!).downloadUrl.await()
-                item.image_url = url
-                arrayList.add(item)
+        firestore.collection("branch_items")
+            .document(branchId)
+            .collection("items").get().addOnSuccessListener { itemsCollection ->
+            itemsCollection.documents.forEach {
+                val item = it.toObject(Item::class.java)
+                if (item != null) {
+//                    val url = firebaseStorage.getReference(item.item_image_path!!).downloadUrl.addOnSuccessListener {
+//
+//                    }
+//                    item.image_url = url
+                    arrayList.add(item)
+                }
             }
+                onDataFetched.onSuccess(arrayList)
         }
 
-        onDataFetched.onSuccess(arrayList)
 
 //        firestore.collection("branch_items").whereEqualTo("branch_id", branchId).get().addOnSuccessListener {
 //            val itemsRef = it.documents[0].reference.collection("items")
